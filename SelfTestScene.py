@@ -2,10 +2,15 @@
 Created on May 10, 2016
 
 @author: manwang
+Updated for PyQt6 compatibility
 '''
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
 from stat import *
+from PyQt6.QtCore import Qt, QObject, QPointF, QRectF, QLineF, pyqtSignal, QTimer, QRect
+from PyQt6.QtWidgets import (QFileDialog, QPushButton, QTreeView, QWidget, QTableWidget, 
+                             QTableWidgetItem, QHBoxLayout, QVBoxLayout, QGridLayout,
+                             QComboBox, QLineEdit, QLabel, QRadioButton, QMessageBox,
+                             QCompleter, QGraphicsTextItem, QGraphicsProxyWidget, QHeaderView)
+from PyQt6.QtGui import QPen, QBrush, QColor, QFont, QPainter, QPixmap, QIcon, QTransform
 from Ui_AutogradingTestDlg import Ui_Dialog
 import MyFunctions
 import PermissionChecker
@@ -13,9 +18,9 @@ import random
 
 class FileDialog(QFileDialog):
     def __init__(self, *args):
-        QFileDialog.__init__(self, *args)
-        self.setOption(self.DontUseNativeDialog, True)
-        self.setFileMode(self.ExistingFiles)
+        super().__init__(*args)
+        self.setOption(QFileDialog.Option.DontUseNativeDialog, True)
+        self.setFileMode(QFileDialog.FileMode.ExistingFiles)
         btns = self.findChildren(QPushButton)
         self.openBtn = [x for x in btns if 'open' in str(x.text()).lower()][0]
         self.openBtn.clicked.disconnect()
@@ -30,7 +35,7 @@ class FileDialog(QFileDialog):
         files = []
         for i in inds:
             if i.column() == 0:
-                files.append(os.path.join(str(self.directory().absolutePath()), str(i.data().toString())))
+                files.append(os.path.join(str(self.directory().absolutePath()), str(i.data())))
         self.selectedFiles = files
         if self.selectedFiles:
             self.main.selfTestViewScene.setObjUI(self.selectedFiles[0])
@@ -50,7 +55,7 @@ class SelfTestScene(QWidget):
     ANIMTESTEPS = [5, 6]
     
     def __init__(self, parent, main):
-        QWidget.__init__(self, parent)
+        super().__init__(parent)
         self.main = main
         self.scene = main.scene
         self.initParam()
@@ -81,21 +86,14 @@ class SelfTestScene(QWidget):
     def setupWidget(self, parent):
         self.setupPermissionTableView()
         self.setupProcessTableView()
-        self.tableViewQuestionConf.setGeometry(0, 0, self.scene.sceneRect().width(), 0.5*self.scene.sceneRect().height())
+        self.tableViewQuestionConf.setGeometry(0, 0, int(self.scene.sceneRect().width()), int(0.5*self.scene.sceneRect().height()))
         self.interfaceTableItems.add(self.tableViewQuestionConf)
-        
-#         self.questionType = QComboBox()
-#         self.questionType.addItem('Process')
-#         self.questionType.addItem('Permission')
-#         MyFunctions.setFontForUI(self.questionType, 20)
-#         self.createUIInScene(self.questionType)
-#         self.questionType.activated.connect(self.questionTypeChanged)
 
     def setCellText(self, table, r, c, text, font = QFont('Courier', 18), isBold = False):
-        item = QTableWidgetItem(QString(text))
+        item = QTableWidgetItem(text)
         font.setBold(isBold)
         item.setFont(font)
-        item.setTextAlignment(Qt.AlignCenter)
+        item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
         table.setItem(r, c, item)
         return item
         
@@ -106,9 +104,9 @@ class SelfTestScene(QWidget):
             lineEdit = QLineEdit()
         else:
             lineEdit = QComboBox()
-            lineEdit.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+            lineEdit.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToContents)
             lineEdit.setEditable(True)
-            lineEdit.completer().setCompletionMode(QCompleter.PopupCompletion)
+            lineEdit.completer().setCompletionMode(QCompleter.CompletionMode.PopupCompletion)
 
         button = QPushButton(btnText)
         hlayout.addWidget(lineEdit)
@@ -126,22 +124,22 @@ class SelfTestScene(QWidget):
         self.tablePermissionViewQuestionConf.horizontalHeader().setVisible(False)
 
         item = self.setCellText(self.tablePermissionViewQuestionConf, 0, 1, 'Permission', QFont('Courier', 20))
-        item.setFlags(item.flags() &~Qt.ItemIsEditable)
+        item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
         item = self.setCellText(self.tablePermissionViewQuestionConf, 0, 0, '', QFont('Courier', 20))
-        item.setFlags(item.flags() &~Qt.ItemIsEditable)
+        item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
         item = self.setCellText(self.tablePermissionViewQuestionConf, 0, 2, '', QFont('Courier', 20))
-        item.setFlags(item.flags() &~Qt.ItemIsEditable)
+        item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
         item = self.setCellText(self.tablePermissionViewQuestionConf, 1, 0, 'Octal Notation', QFont('Courier', 20))
-        item.setFlags(item.flags() &~Qt.ItemIsEditable)
+        item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
         
         chosenPerm = self.generateRandomPermissionInOctal()
         item = self.setCellText(self.tablePermissionViewQuestionConf, 1, 1, chosenPerm, QFont('Courier', 20))
         
-        item.setFlags(item.flags() &~Qt.ItemIsEditable)
+        item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
         item = self.setCellText(self.tablePermissionViewQuestionConf, 1, 2, '', QFont('Courier', 20))
-        item.setFlags(item.flags() &~Qt.ItemIsEditable)
+        item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
         item = self.setCellText(self.tablePermissionViewQuestionConf, 2, 0, '', QFont('Courier', 20))
-        item.setFlags(item.flags() &~Qt.ItemIsEditable)
+        item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
         
         widget = QWidget()
         layout = QHBoxLayout(widget)
@@ -152,12 +150,12 @@ class SelfTestScene(QWidget):
         self.tablePermissionViewQuestionConf.setCellWidget(2,1,widget)
         self.updatePermBtn.clicked.connect(self.generateChoicesForPermQues)
         item = self.setCellText(self.tablePermissionViewQuestionConf, 2, 1, '', QFont('Courier', 20))
-        item.setFlags(item.flags() &~Qt.ItemIsEditable)
+        item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
         item = self.setCellText(self.tablePermissionViewQuestionConf, 2, 2, '', QFont('Courier', 20))
-        item.setFlags(item.flags() &~Qt.ItemIsEditable)
+        item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
         self.setPermTableBackgroundColor()
-        self.tablePermissionViewQuestionConf.verticalHeader().setResizeMode(QHeaderView.Stretch)
-        self.tablePermissionViewQuestionConf.horizontalHeader().setResizeMode(QHeaderView.Stretch)
+        self.tablePermissionViewQuestionConf.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.tablePermissionViewQuestionConf.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         
     def setupProcessTableView(self):
         self.tableViewQuestionConf = QTableWidget(self.main.view)
@@ -167,18 +165,18 @@ class SelfTestScene(QWidget):
         self.tableViewQuestionConf.horizontalHeader().setVisible(False)
  
         item = self.setCellText(self.tableViewQuestionConf, 1, 0, 'Real UID', QFont('Courier', 20))
-        item.setFlags(item.flags() &~Qt.ItemIsEditable)
+        item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
         item = self.setCellText(self.tableViewQuestionConf, 2, 0, 'Real GID', QFont('Courier', 20))
-        item.setFlags(item.flags() &~Qt.ItemIsEditable)
+        item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
         item = self.setCellText(self.tableViewQuestionConf, 3, 0, 'Effective UID', QFont('Courier', 20))
-        item.setFlags(item.flags() &~Qt.ItemIsEditable)
+        item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
         item = self.setCellText(self.tableViewQuestionConf, 4, 0, 'Effective GID', QFont('Courier', 20))
-        item.setFlags(item.flags() &~Qt.ItemIsEditable)
+        item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
         
         widget = QWidget()
         procLabel = QLabel('Process')
         procLabel.setFont(QFont('Courier', 20))
-        procLabel.setAlignment(Qt.AlignCenter)
+        procLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.procAllRandomPBtn = QPushButton('Random All')
         hlayout = QHBoxLayout(widget)
         hlayout.addWidget(procLabel)
@@ -191,13 +189,14 @@ class SelfTestScene(QWidget):
         self.procRGIDLineEdit, self.procRGIDRandomPBtn = self.createLineEditAndButtonCombo(2,1)
         self.procEUIDLineEdit, self.procEUIDRandomPBtn = self.createLineEditAndButtonCombo(3,1)
         self.procEGIDLineEdit, self.procEGIDRandomPBtn = self.createLineEditAndButtonCombo(4,1)
+        
         '''cell 1,3'''
         widget = QWidget()
         glayout = QGridLayout(widget)
         self.objDirLineEdit = QComboBox()
-        self.objDirLineEdit.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+        self.objDirLineEdit.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToContents)
         self.objDirLineEdit.setEditable(True)
-        self.objDirLineEdit.completer().setCompletionMode(QCompleter.PopupCompletion)
+        self.objDirLineEdit.completer().setCompletionMode(QCompleter.CompletionMode.PopupCompletion)
         self.objDirLoadPBtn = QPushButton('...')
         self.objPermRefresh = QPushButton('Refresh')
         glayout.addWidget(self.objDirLineEdit,0,0)
@@ -206,36 +205,35 @@ class SelfTestScene(QWidget):
         glayout.setContentsMargins(0, 0, 0, 0)
         widget.setLayout(glayout)
         self.tableViewQuestionConf.setCellWidget(1,3,widget)
-        '''cell 1,3'''
         
         self.permLineEdit, self.permRandomPBtn = self.createLineEditAndButtonCombo(1,4)
-        for i in xrange(1, 8):
+        for i in range(1, 8):
             self.permLineEdit.addItem(PermissionChecker.convertOctToRWXString(i))
         
         self.settingPermLabel = QLabel('')
-        self.settingPermLabel.setMargin(0)
-        self.settingPermLabel.setTextFormat(Qt.RichText)
+        self.settingPermLabel.setContentsMargins(0, 0, 0, 0)
+        self.settingPermLabel.setTextFormat(Qt.TextFormat.RichText)
         self.settingPermLabel.setWordWrap(True)
-        self.settingPermLabel.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+        self.settingPermLabel.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
         self.settingPermLabel.setFont(QFont('Courier', 19))
         self.tableViewQuestionConf.setCellWidget(4,3,self.settingPermLabel)
         
         item = self.setCellText(self.tableViewQuestionConf, 0, 3, 'Object', QFont('Courier', 20))
-        item.setFlags(item.flags() &~Qt.ItemIsEditable)
+        item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
         item = self.setCellText(self.tableViewQuestionConf, 0, 4, 'Permission(Letter)', QFont('Courier', 20))
-        item.setFlags(item.flags() &~Qt.ItemIsEditable)
+        item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
          
         item = self.setCellText(self.tableViewQuestionConf, 1, 2, 'Directory', QFont('Courier', 20))
-        item.setFlags(item.flags() &~Qt.ItemIsEditable)
+        item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
         item = self.setCellText(self.tableViewQuestionConf, 2, 2, 'User Owner', QFont('Courier', 20))
-        item.setFlags(item.flags() &~Qt.ItemIsEditable)
+        item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
         item = self.setCellText(self.tableViewQuestionConf, 3, 2, 'Group Owner', QFont('Courier', 20))
-        item.setFlags(item.flags() &~Qt.ItemIsEditable)
+        item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
         item = self.setCellText(self.tableViewQuestionConf, 4, 2, 'Permissions', QFont('Courier', 20))
-        item.setFlags(item.flags() &~Qt.ItemIsEditable)
+        item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
         
-        for c in xrange(self.tableViewQuestionConf.columnCount()):
-            for r in xrange(self.tableViewQuestionConf.rowCount()): 
+        for c in range(self.tableViewQuestionConf.columnCount()):
+            for r in range(self.tableViewQuestionConf.rowCount()):
                 if self.tableViewQuestionConf.item(r, c) == None:
                     self.setCellText(self.tableViewQuestionConf, r, c, '')
                 if c < 2:
@@ -244,10 +242,11 @@ class SelfTestScene(QWidget):
                     color = QColor(252, 243, 207)
                 else:
                     color = QColor(250, 219, 216)
-                self.tableViewQuestionConf.item(r, c).setData(Qt.BackgroundRole, QVariant(QBrush(color)))
-        self.tableViewQuestionConf.verticalHeader().setResizeMode(QHeaderView.Stretch)
-        self.tableViewQuestionConf.horizontalHeader().setResizeMode(QHeaderView.Stretch)
+                self.tableViewQuestionConf.item(r, c).setData(Qt.ItemDataRole.BackgroundRole, QBrush(color))
+        self.tableViewQuestionConf.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.tableViewQuestionConf.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         
+        # Connect signals
         self.objDirLoadPBtn.clicked.connect(self.setObjPath)
         self.objDirLineEdit.highlighted.connect(lambda dirIndex: self.showWholePathAsHint(dirIndex))
         self.objPermRefresh.clicked.connect(self.updateFileInfo)
@@ -265,7 +264,6 @@ class SelfTestScene(QWidget):
         self.permLineEdit.currentIndexChanged.connect(self.settingChanged)
         self.objDirLineEdit.editTextChanged.connect(self.updateFileInfo)
         
-        
     def createUIInScene(self, widget, isQuesItem = True):
         proxyWidget = QGraphicsProxyWidget()
         proxyWidget.setWidget(widget)
@@ -282,12 +280,7 @@ class SelfTestScene(QWidget):
     def initQuestion(self):        
         self.labelQuestionText = QGraphicsTextItem(self.QUES_INFO[self.PROCESS_QUES][0])
         MyFunctions.setFontForUI(self.labelQuestionText, 25)
-#         self.labelQuestion = QGraphicsTextItem('Question Type: ')
-#         MyFunctions.setFontForUI(self.labelQuestion, 25)
         if self.labelQuestionText not in self.scene.items():
-#             self.scene.addItem(self.labelQuestion)
-#             self.interfaceQuesItems.add(self.labelQuestion)
-#             self.labelQuestionText = self.createGraphicsTextItem(self.scene, self.QUES_INFO[self.PROCESS_QUES][0], 25)
             self.scene.addItem(self.labelQuestionText)
             self.interfaceQuesItems.add(self.labelQuestionText)
             self.quesTextWidth = self.labelQuestionText.boundingRect().width()
@@ -295,7 +288,7 @@ class SelfTestScene(QWidget):
             self.answerWidget = QWidget()
             self.answerWidget.setStyleSheet("background-color: white")
             answerLayout = QVBoxLayout()
-            answerLayout.setMargin(0)
+            answerLayout.setContentsMargins(0, 0, 0, 0)
             self.answerRadioBtn1 = QRadioButton('Yes')
             self.answerRadioBtn1.setStyleSheet("background-color: white")
             MyFunctions.setFontForUI(self.answerRadioBtn1, 25)
@@ -342,8 +335,8 @@ class SelfTestScene(QWidget):
             self.nextExplainPBtn.clicked.connect(self.explainAnswer)
         
     def updateLayout(self):
-        self.tableViewQuestionConf.setGeometry(0, 0, self.scene.sceneRect().width(), 0.5*self.scene.sceneRect().height())
-        self.tablePermissionViewQuestionConf.setGeometry(0, 0, self.scene.sceneRect().width(), 0.5*self.scene.sceneRect().height())
+        self.tableViewQuestionConf.setGeometry(0, 0, int(self.scene.sceneRect().width()), int(0.5*self.scene.sceneRect().height()))
+        self.tablePermissionViewQuestionConf.setGeometry(0, 0, int(self.scene.sceneRect().width()), int(0.5*self.scene.sceneRect().height()))
 
         if self.quesTextWidth > self.scene.sceneRect().width(): 
             self.labelQuestionText.setTextWidth(self.scene.sceneRect().width())
@@ -359,14 +352,14 @@ class SelfTestScene(QWidget):
         xinter = max(xinter, xinter1)
         self.footnoteTextItem.setPos(0.5*(self.scene.sceneRect().width()-xinter), 0.51*self.scene.sceneRect().height())
         self.labelQuestionText.setPos(self.footnoteTextItem.pos().x(), self.footnoteTextItem.pos().y()+self.footnoteTextItem.boundingRect().height()+5)
-        self.answerWidget.setGeometry(self.labelQuestionText.pos().x()+10, self.labelQuestionText.pos().y()+self.labelQuestionText.boundingRect().height()+5, \
+        self.answerWidget.setGeometry(int(self.labelQuestionText.pos().x()+10), int(self.labelQuestionText.pos().y()+self.labelQuestionText.boundingRect().height()+5), 
                                            self.answerWidget.geometry().width(), self.answerWidget.geometry().height())
         xinter = self.nextExplainPBtn.geometry().width()
         yinter = self.nextExplainPBtn.geometry().height()
-        self.nextExplainPBtn.setGeometry(self.scene.sceneRect().width()-10-xinter, self.scene.sceneRect().height()-10-yinter, \
+        self.nextExplainPBtn.setGeometry(int(self.scene.sceneRect().width()-10-xinter), int(self.scene.sceneRect().height()-10-yinter),
                                          xinter, yinter)
         xinter = self.nextSkipPBtn.geometry().width()
-        self.nextSkipPBtn.setGeometry(self.nextExplainPBtn.pos().x()-xinter-10, self.nextExplainPBtn.pos().y(), \
+        self.nextSkipPBtn.setGeometry(int(self.nextExplainPBtn.pos().x()-xinter-10), int(self.nextExplainPBtn.pos().y()),
                                          self.nextExplainPBtn.geometry().width(), self.nextSkipPBtn.geometry().height())
         self.correctnessTextItem.setPos(self.nextSkipPBtn.geometry().x(), self.nextSkipPBtn.geometry().y()-self.nextSkipPBtn.geometry().height()-5)
         if self.questionType == self.PROCESS_QUES:
@@ -397,8 +390,8 @@ class SelfTestScene(QWidget):
             self.updateLayout()
         
     def setTableBackgroundColor(self, endr, endc, isEnabled):
-        for c in xrange(endc):
-            for r in xrange(endr): 
+        for c in range(endc):
+            for r in range(endr):
                 item = self.tableViewQuestionConf.item(r, c)
                 if isEnabled:
                     if c < 2:
@@ -408,14 +401,14 @@ class SelfTestScene(QWidget):
                     else:
                         color = QColor(250, 219, 216)
                 else:
-                    color = Qt.lightGray
-                item.setData(Qt.BackgroundRole, QVariant(QBrush(color)))
+                    color = Qt.GlobalColor.lightGray
+                item.setData(Qt.ItemDataRole.BackgroundRole, QBrush(color))
                 
     def setPermTableBackgroundColor(self):
-        for r in xrange(self.tablePermissionViewQuestionConf.rowCount()):
-            for c in xrange(self.tablePermissionViewQuestionConf.columnCount()):
+        for r in range(self.tablePermissionViewQuestionConf.rowCount()):
+            for c in range(self.tablePermissionViewQuestionConf.columnCount()):
                 item = self.tablePermissionViewQuestionConf.item(r,c)
-                item.setData(Qt.BackgroundRole, QVariant(QBrush(QColor(252, 243, 207))))
+                item.setData(Qt.ItemDataRole.BackgroundRole, QBrush(QColor(252, 243, 207)))
                              
     def processUIsetting(self):
         self.tableViewQuestionConf.setVisible(True)
@@ -462,7 +455,6 @@ class SelfTestScene(QWidget):
         return permstr
     
     def generateChoicesForPermQues(self):
-        '''random permission in question'''
         choices = ['']*4
         index = [0,1,2,3]
         chosenPerm = self.generateRandomPermissionInOctal()
@@ -485,10 +477,9 @@ class SelfTestScene(QWidget):
         self.answerRadioBtn4.setText(choices[3])
 
     def resetAnimatedItems(self):
-        for r in xrange(self.tableViewQuestionConf.rowCount()):
-            for c in xrange(self.tableViewQuestionConf.columnCount()):
+        for r in range(self.tableViewQuestionConf.rowCount()):
+            for c in range(self.tableViewQuestionConf.columnCount()):
                 self.tableViewQuestionConf.item(r,c).setSelected(False)
-        '''disable all highlight in text as well'''
         self.higlightPermSection(-1, False)
                 
     def higlightPermSection(self, section=0, isHighlight = True):
@@ -570,18 +561,10 @@ class SelfTestScene(QWidget):
                 self.updateExplainText('  Sticky bit is set. "x" bit in other bits should be "t" if "x" is set; "x" bit in other bits should be "T" if "x" is not set.\n')
         elif self.main.animationStep == 6:
             self.updateExplainText('- Conclusion:')
-            self.updateExplainText('  "%s" means having permission of %s.\n'%(\
+            self.updateExplainText('  "%s" means having permission of %s.\n'%(
                                     correctPerm, self.convertNineBitsOctToRWX(correctPerm)))
         
     def onAnimateSelfTest_Process(self):
-        '''
-        0 |     1   | 2 |  3  |     4
-        0 | process | 2 | obj | perm(binary)
-        1 | ruid    |   | dir | p
-        2 | rgid    |   | user | 
-        3 | euid    |   | group|
-        4 | egid    |   | perm | 
-        '''
         self.resetAnimatedItems()
         self.main.explainTexteditHighlightLastLines()
         if self.main.animationStep == 0:
@@ -647,7 +630,7 @@ class SelfTestScene(QWidget):
         infomsgs = self.info_msg.split('.')
         infomsgs.remove('')
         self.updateExplainText('  '+infomsgs[0]+'.')
-        for i in xrange(len(infomsgs)):
+        for i in range(len(infomsgs)):
             number = 2
             if infomsgs[i][0] == ' ':
                 number = 1
@@ -669,7 +652,6 @@ class SelfTestScene(QWidget):
         return fileuser, str(uid), filegroup, str(gid), permletters, perms
     
     def updateFileInfo(self):
-        '''file type'''
         self.objDir = str(self.objDirLineEdit.currentText())
         if self.objDir:
             if self.objDir[-1] == '/' and self.objDir != '/':
@@ -727,7 +709,6 @@ class SelfTestScene(QWidget):
             self.addSpecObjToUI()
             self.w = FileDialog(self.main, 'Select an object', self.main.root_dir)
     
-    '''handlers'''
     def noRootdirWarning(self):
         if not self.main.root_dir:
             QMessageBox.critical(self.main, '', 'Please import a policy file or set a root directory!')
@@ -738,9 +719,9 @@ class SelfTestScene(QWidget):
             QMessageBox.critical(self.main, '', 'Please import a policy file or set a root directory!')
             return
         self.w.show()
-#         
+        
     def showWholePathAsHint(self, dirIndex):
-        self.objDirLineEdit.setItemData(dirIndex, str(self.objDirLineEdit.itemText(dirIndex)), Qt.ToolTipRole)
+        self.objDirLineEdit.setItemData(dirIndex, str(self.objDirLineEdit.itemText(dirIndex)), Qt.ItemDataRole.ToolTipRole)
         
     def randomProc(self):
         if not self.main.root_dir:
@@ -832,7 +813,6 @@ class SelfTestScene(QWidget):
             self.generateChoicesForPermQues()
         
     def computePermForEachBit(self, username, filepath, parentDir, action):
-        '''groupname is name of any group'''
         actionOrdered = sorted(list(action))
         settingperm = ' and '.join(actionOrdered)
         msg = ''
@@ -858,32 +838,38 @@ class SelfTestScene(QWidget):
             section = 0
             if self.main.filebrowser.hasPerm(action, permsu, permso, 'user'):
                 success = True
-                msg+=('%s%s')\
-                    %(self.main.filebrowser.bitsToUseMsg('user', permsu), self.main.filebrowser.fileMsg(success, settingperm, 'user', permsu))
+                msg+='%s%s'%(
+                    self.main.filebrowser.bitsToUseMsg('user', permsu), 
+                    self.main.filebrowser.fileMsg(success, settingperm, 'user', permsu))
             else:
                 success = False
-                msg+=('%s%s')\
-                    %(self.main.filebrowser.bitsToUseMsg('user', permsu), self.main.filebrowser.fileMsg(success, settingperm, 'user', permsu))
+                msg+='%s%s'%(
+                    self.main.filebrowser.bitsToUseMsg('user', permsu), 
+                    self.main.filebrowser.fileMsg(success, settingperm, 'user', permsu))
         elif (filegroup in groups) or ('s' in permsg or 'S' in permsg):
             section = 1
             if self.main.filebrowser.hasPerm(action, permsg, permso, 'group'):
                 success = True
-                msg+=('%s%s')\
-                    %(self.main.filebrowser.bitsToUseMsg('group', permsg), self.main.filebrowser.fileMsg(success, settingperm, 'group', permsg))
+                msg+='%s%s'%(
+                    self.main.filebrowser.bitsToUseMsg('group', permsg), 
+                    self.main.filebrowser.fileMsg(success, settingperm, 'group', permsg))
             else:
                 success = False
-                msg+=('%s%s')\
-                    %(self.main.filebrowser.bitsToUseMsg('group', permsg), self.main.filebrowser.fileMsg(success, settingperm, 'group', permsg))
+                msg+='%s%s'%(
+                    self.main.filebrowser.bitsToUseMsg('group', permsg), 
+                    self.main.filebrowser.fileMsg(success, settingperm, 'group', permsg))
         else:
             section = 2
             if self.main.filebrowser.hasPerm(action, permso, permso, 'other'):
                 success = True
-                msg+=('%s%s')\
-                    %(self.main.filebrowser.bitsToUseMsg('other', permso), self.main.filebrowser.fileMsg(success, settingperm, 'other', permso))
+                msg+='%s%s'%(
+                    self.main.filebrowser.bitsToUseMsg('other', permso), 
+                    self.main.filebrowser.fileMsg(success, settingperm, 'other', permso))
             else:
                 success = False
-                msg += ('%s%s')\
-                    %(self.main.filebrowser.bitsToUseMsg('other', permso), self.main.filebrowser.fileMsg(success, settingperm, 'other', permso))
+                msg += '%s%s'%(
+                    self.main.filebrowser.bitsToUseMsg('other', permso), 
+                    self.main.filebrowser.fileMsg(success, settingperm, 'other', permso))
         self.main.filebrowser.permrelation = oldpermrelation
         return success, section, username, fileuser, grouptext, filegroup, msg
     

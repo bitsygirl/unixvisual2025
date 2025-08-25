@@ -2,6 +2,7 @@
 Created on Aug 17, 2015
 
 @author: manwang
+Updated for Python 3 compatibility
 '''
 from syscalloutputparse import *
 
@@ -43,4 +44,4 @@ if __name__ == '__main__':
     text = "Initial pid: 8355\nInitial euid: 100\nInitial egid: 200\nCall:open\nID: 10,20,30,40\nParameter: myfile\nParameter: 1001, 384\nError: No error\nStatus:4\n"
     text+="Call:read\nID: 1,2,3,4\nParameter: myfile\nParameter: 1001, 384\nError: Operation not permitted\nStatus:4\n"
     result = syscalloutput(text)
-    print result
+    print(result)

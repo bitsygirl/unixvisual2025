@@ -2,20 +2,21 @@
 Created on Apr 16, 2015
 
 @author: manwang
+Updated for PyQt6 and Python 3.12+ compatibility
 '''
 import sys
-from PyQt4.QtGui import QApplication, QDialog
-from PyQt4.QtCore import QCoreApplication, Qt
+from PyQt6.QtWidgets import QApplication, QDialog
+from PyQt6.QtCore import QCoreApplication, Qt
 from MainWindow import MainWindow
 from Ui_Greeting import Ui_Greeting
 from AnswerCrypto import AnswerCrypto
 
 class GreetingWindow(QDialog):
     def __init__(self, main):
-        QDialog.__init__(self)
+        super().__init__()
         self.ui = Ui_Greeting()
         self.ui.setupUi(self)
-        flags = Qt.Dialog | Qt.WindowStaysOnTopHint
+        flags = Qt.WindowType.Dialog | Qt.WindowType.WindowStaysOnTopHint
         self.setWindowFlags(flags)
         self.ui.pushButton.clicked.connect(main.closeGreeting)
         
@@ -23,11 +24,13 @@ def main():
     app = QApplication(sys.argv)
     QCoreApplication.setApplicationName('UNIXvisual')
     QCoreApplication.setApplicationVersion('1.0')
-       
-    QApplication.setStyle('plastique')
+    
+    # Note: 'plastique' style is deprecated, using default or 'Fusion'
+    # QApplication.setStyle('Fusion')  # Modern alternative to plastique
+    
     app.setStyleSheet("""QToolTip {
-                        background-color:white;
-                        color:black;
+                        background-color: white;
+                        color: black;
     }""")
     
     mainw = MainWindow()
@@ -35,7 +38,7 @@ def main():
     mainw.greetWin.show()
     mainw.show()
     
-    exitcode = app.exec_()
+    exitcode = app.exec()  # Removed underscore - deprecated in PyQt6
     sys.exit(exitcode)
  
 if __name__ == '__main__':

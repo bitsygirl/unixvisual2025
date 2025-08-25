@@ -2,8 +2,9 @@
 Created on Jun 16, 2015
 
 @author: manwang
+Updated for Python 3 and PyQt6 compatibility
 '''       
-from PyQt4.QtCore import QRect, QRectF, QPointF, QFileInfo
+from PyQt6.QtCore import QRect, QRectF, QPointF, QFileInfo
 from collections import namedtuple
 from FileNode import FileNode
 from EdgeItem import EdgeItem
@@ -16,27 +17,27 @@ def makePath(parent = None, name = None):
 
 def printAFileNode(n):
     if n.dirpath:
-        print 'node', n.dirpath, n.name
+        print('node', n.dirpath, n.name)
     else:
-        print 'node', 'None', n.name
+        print('node', 'None', n.name)
             
 def printListofList(listl):
-    for i in xrange(len(listl)):
+    for i in range(len(listl)):
         for l in listl[i]:
-            print i, l.getFullPath(), l.specNode
+            print(i, l.getFullPath(), l.specNode)
     
 def printDictionaryOfFileNodes(dictionary):
-    for i in xrange(0, len(dictionary)):
+    for i in range(0, len(dictionary)):
         for n in dictionary[i]:
-            print i, n.dirpath, n.name
-            print 'parent'
+            print(i, n.dirpath, n.name)
+            print('parent')
             if n.parent:
-                print n.parent.dirpath, n.parent.name
+                print(n.parent.dirpath, n.parent.name)
             else:
-                print 'None', 'None'
-            print 'children'
+                print('None', 'None')
+            print('children')
             for c in n.children:
-                print c.dirpath, c.name
+                print(c.dirpath, c.name)
                 
 def list_files(startpath, depth=1000):
     count = 0
@@ -45,7 +46,7 @@ def list_files(startpath, depth=1000):
     if not os.access(startpath, os.R_OK):
         return dirlist, [-1]
     for root, dirs, files in os.walk(startpath):
-#         print root, dirs, files
+#         print(root, dirs, files)
         if ".git" in root:
             continue
         level = root.replace(startpath, '').count(os.sep)
@@ -94,7 +95,7 @@ def list_files(startpath, depth=1000):
 # def calculateLevelCircles(rootX, rootY, vWidth, vHeight, dirHier, dirGraph):
 #     if len(dirHier)>1:
 #         d = (min(vWidth, vHeight)-120) / 2.0  / (len(dirHier)-1)
-#         for level in xrange(1, len(dirHier)):
+#         for level in range(1, len(dirHier)):
 #             radius = d * level
 #             dirGraph[level][1] = QRectF(rootX-radius, rootY-radius, 2*radius, 2*radius)
             
@@ -110,7 +111,7 @@ def list_files(startpath, depth=1000):
 #     rootX = viewportWidth
 #     rootY = 0.0
 #     prevLeftLimit = 0
-#     for level in xrange(len(dirHier)):
+#     for level in range(len(dirHier)):
 #         if level == 0:
 #             rootNode = dirHier[0][0]
 #             rootNode.relativeX = rootX
@@ -125,7 +126,7 @@ def list_files(startpath, depth=1000):
 #             prevLeftLimit = node.leftLimit
 #             node.relativeX = d+rootX
 #             node.relativeY = 0
-#             for i in xrange(1, len(dirHier[1])):
+#             for i in range(1, len(dirHier[1])):
 #                 node = dirHier[1][i]
 #                 node.wedgeAngle = float(node.leaves)/float(node.parent.leaves)*node.parent.wedgeAngle
 #                 node.angle = prevLeftLimit + node.wedgeAngle/2.0
@@ -209,17 +210,17 @@ def constructSpecDirecTree(dirList, main):
         tovisit = list(nextlevel)
         tovisit = sorted(tovisit, key=lambda d:d.getFullPath())
         dirHier.append(tovisit)
-#     for i in xrange(0, len(dirHier)):
+#     for i in range(0, len(dirHier)):
 #         for n in dirHier[i]:
-#             print i, n.getFullPath()
-#             print 'parent'
+#             print(i, n.getFullPath())
+#             print('parent')
 #             if n.parent:
-#                 print n.parent.getFullPath()
+#                 print(n.parent.getFullPath())
 #             else:
-#                 print 'None'
-#             print 'children'
+#                 print('None')
+#             print('children')
 #             for c in n.specChildren:
-#                 print c.getFullPath()
+#                 print(c.getFullPath())
     return dirHier, dirNodeList
     
 def constructDirecTree(startpath, main, fnodeclicked):
@@ -282,8 +283,8 @@ def getDirHierarchy(rootpath, main):
     dirSet = set()
     for d in main.obj_cred_mat.keys():
         parents = d.split('/')
-        parents = filter(lambda a: a != '', parents)
-        for j in xrange(len(parents)+1):
+        parents = [p for p in parents if p != '']  # filter replaced with list comprehension
+        for j in range(len(parents)+1):
             tempDir = '/'+'/'.join(parents[:j])
             dirSet.add(tempDir)
     dirList = list(dirSet)
@@ -300,7 +301,7 @@ def getDirHierarchy(rootpath, main):
     main.dirSpecHier = dirSpecHier
 #     scene.dirHier = dirHier
 #     printListofList(dirHier)
-#     print 'scene.dirHier'
+#     print('scene.dirHier')
 #     printListofList(scene.dirHier)
     scene.update()
     
@@ -308,7 +309,7 @@ def combineHierarchy(hier1, hier2, level, main):
     hier = hier1
     if level == len(hier1):
         hier1.append([])
-    for i in xrange(level, len(hier1)):
+    for i in range(level, len(hier1)):
         for d in hier2[i]:
             if i == 1:
                 d.parent = hier1[0][0]
@@ -328,7 +329,7 @@ def combineHierarchyByClickedNode(hier1, hier2, fnode, main):
     if not fnode.specChildren:
         return
     level = 0
-    for i in xrange(len(hier2)):
+    for i in range(len(hier2)):
         if fnode in hier2[i]:
             level = i+1
     hier = hier1
@@ -351,7 +352,7 @@ def getDirHierFromObj(fnode, main):
     for d in dirNodeList:
         scene.dirNodeList.append(d)
     dirHier = constructDirGraphHier(dirNodeList[0])
-    for level in xrange(len(scene.dirHier)):
+    for level in range(len(scene.dirHier)):
         if len(dirHier)>1:
             if fnode in scene.dirHier[level]:
                 if level+1<len(scene.dirHier):
@@ -384,7 +385,7 @@ def getDirHierFromObj(fnode, main):
 #                     del e
 #         nodeToVisit.remove(n)
 #     count = len(nodeToRemove)
-#     for level in xrange(len(scene.dirHier)):
+#     for level in range(len(scene.dirHier)):
 #         for c in nodeToRemove:
 #             if c in scene.dirHier[level]:
 #                 scene.dirHier[level].remove(c)

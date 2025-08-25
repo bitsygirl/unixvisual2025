@@ -1,22 +1,23 @@
-from PyQt4 import QtCore, QtGui
-from PyQt4.QtGui import QWidget, QCheckBox, QVBoxLayout, QGroupBox, QDialog, QTabWidget, QPushButton, \
-                        QHBoxLayout, QLabel, QFont, QLineEdit, QSizePolicy
-from PyQt4.QtCore import QString, Qt
+from PyQt6 import QtCore, QtGui
+from PyQt6.QtWidgets import QWidget, QCheckBox, QVBoxLayout, QGroupBox, QDialog, QTabWidget, QPushButton, \
+                        QHBoxLayout, QLabel, QLineEdit, QSizePolicy
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont
 import MyFunctions
         
 class PermissionCalDialog(QDialog):
     
     def __init__(self, parent = None):
-        QDialog.__init__(self, parent)
+        super().__init__(parent)
         self.main = parent
-        flags = Qt.Dialog | Qt.WindowStaysOnTopHint
+        flags = Qt.WindowType.Dialog | Qt.WindowType.WindowStaysOnTopHint
         self.setWindowFlags(flags)
         self.resize(400, 400)
 #         self.tabId = 0
         self.tabWidget = QTabWidget()
         self.octal2Letter = Octal2LetterTab()
-        self.tabWidget.addTab(Letter2OctalTab(), QString('Convert to Octal'))
-        self.tabWidget.addTab(self.octal2Letter, QString('Decode Octal'))
+        self.tabWidget.addTab(Letter2OctalTab(), 'Convert to Octal')
+        self.tabWidget.addTab(self.octal2Letter, 'Decode Octal')
         
         closePB = QPushButton('Close')
         
@@ -28,11 +29,11 @@ class PermissionCalDialog(QDialog):
     
     def closeEvent(self, evt):
         self.main.ui.actionPermission_Calculator_Window.setChecked(False)
-        QDialog.closeEvent(self, evt)
+        super().closeEvent(evt)
         
 class Letter2OctalTab(QWidget):
     def __init__(self, parent = None):
-        QWidget.__init__(self, parent)
+        super().__init__(parent)
         self.specOctal = 0
         self.userOctal = 0
         self.groupOctal = 0
@@ -101,14 +102,14 @@ class Letter2OctalTab(QWidget):
         self.octalDisplayLab.setContentsMargins(0, 0, 0, 0)
         MyFunctions.setFontForUI(self.octalDisplayLab, 30)
         self.octalDisplayLab.setStyleSheet("qproperty-alignment: AlignCenter;")
-        self.octalDisplayLab.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
+        self.octalDisplayLab.setSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Preferred)
         vbox5.addWidget(self.octalDisplayLab)
         
         self.letterDisplayLab = QLabel('%s%s%s'%(self.userLetter, self.groupLetter, self.otherLetter))
         self.letterDisplayLab.setContentsMargins(0, 0, 0, 0)
         MyFunctions.setFontForUI(self.letterDisplayLab, 30)
         self.letterDisplayLab.setStyleSheet("qproperty-alignment: AlignCenter;")
-        self.letterDisplayLab.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
+        self.letterDisplayLab.setSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Preferred)
         vbox5.addWidget(self.letterDisplayLab)
         
         vbox0.addWidget(octalGB)
@@ -291,7 +292,7 @@ class Letter2OctalTab(QWidget):
 class Octal2LetterTab(QWidget):
 
     def __init__(self, parent = None):
-        QWidget.__init__(self, parent)
+        super().__init__(parent)
         
         self.userLetter, self.groupLetter, self.otherLetter = '---', '---', '---'
         
@@ -353,7 +354,7 @@ class Octal2LetterTab(QWidget):
         self.octalDisplayLab.setContentsMargins(0, 0, 0, 0)
         MyFunctions.setFontForUI(self.octalDisplayLab, 30)
         self.octalDisplayLab.setStyleSheet("qproperty-alignment: AlignCenter;")
-        self.octalDisplayLab.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
+        self.octalDisplayLab.setSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Preferred)
         self.submitBtn = QPushButton('update')
         self.errorLab = QLabel('')
         self.errorLab.setStyleSheet("QLabel {color : red; }")
@@ -362,7 +363,7 @@ class Octal2LetterTab(QWidget):
         MyFunctions.setFontForUI(self.letterDisplayLab, 30)
         self.letterDisplayLab.setContentsMargins(0, 0, 0, 0)
         self.letterDisplayLab.setStyleSheet("qproperty-alignment: AlignCenter;")
-        self.letterDisplayLab.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
+        self.letterDisplayLab.setSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Preferred)
 
         vbox5.addWidget(self.octalDisplayLab)
         vbox5.addWidget(self.letterDisplayLab)
@@ -477,7 +478,7 @@ class Octal2LetterTab(QWidget):
        
 class CustomReadCheckBox(QCheckBox):
     def __init__( self, parent = None ):
-        QCheckBox.__init__(self, parent)
+        super().__init__(parent)
         self._readOnly = True
 
     def isReadOnly( self ):
@@ -487,23 +488,23 @@ class CustomReadCheckBox(QCheckBox):
         if ( self.isReadOnly() ):
             event.accept()
         else:
-            QCheckBox.mousePressEvent(event)
+            super().mousePressEvent(event)
 
     def mouseMoveEvent( self, event ):
         if ( self.isReadOnly() ):
             event.accept()
         else:
-            QCheckBox.mouseMoveEvent(event)
+            super().mouseMoveEvent(event)
 
     def mouseReleaseEvent( self, event ):
         if ( self.isReadOnly() ):
             event.accept()
         else:
-            QCheckBox.mouseReleaseEvent(event)
+            super().mouseReleaseEvent(event)
 
     # Handle event in which the widget has focus and the spacebar is pressed.
     def keyPressEvent( self, event ):
         if ( self.isReadOnly() ):
             event.accept()
         else:
-            QCheckBox.keyPressEvent(event)
+            super().keyPressEvent(event)

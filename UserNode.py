@@ -2,19 +2,21 @@
 Created on Jun 22, 2015
 
 @author: manwang
+Updated for PyQt6 compatibility
 '''
-from PyQt4.QtGui import QGraphicsItem, QGraphicsEllipseItem, QBrush, QPen, QColor, QFontMetrics, QPainter, QFont
-from PyQt4.QtCore import Qt, QRectF, QObject, QPointF
+from PyQt6.QtWidgets import QGraphicsItem, QGraphicsEllipseItem
+from PyQt6.QtGui import QBrush, QPen, QColor, QPainter, QFont
+from PyQt6.QtCore import Qt, QRectF, QObject, QPointF
 from EdgeItem import EdgeItem
 import MyFunctions
 
 class GeneralNode(QGraphicsEllipseItem):
     def __init__(self, main, isUserG, name):
-        QGraphicsEllipseItem.__init__(self, QRectF(-40,-20,80,40))
+        super().__init__(QRectF(-40,-20,80,40))
         self.isUserG = isUserG
         self.setVisible(False)
-        self.setFlag(QGraphicsItem.ItemIsMovable, False)
-        self.setFlag(QGraphicsItem.ItemIsSelectable, True)
+        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable, False)
+        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable, True)
         self.relativeX, self.relativeY = 0.3, 0.2
         self.main = main
         self.scene = main.scene
@@ -22,7 +24,7 @@ class GeneralNode(QGraphicsEllipseItem):
         self.highlight = False
         self.name = name
         if self.isUserG:
-            self.color = Qt.magenta
+            self.color = Qt.GlobalColor.magenta
         else:
             self.color = self.main.mediumBlue
         self.setPos(QPointF(self.relativeX*self.scene.sceneRect().width(), self.relativeY*self.scene.sceneRect().height()))
@@ -34,31 +36,29 @@ class GeneralNode(QGraphicsEllipseItem):
         pen = QPen(QColor(0, 0, 0))
         pen.setWidth(1.0)
         self.setPen(pen)
-        QGraphicsEllipseItem.paint(self, painter, option, widget)
-        painter.drawText(self.rect(), Qt.AlignCenter, self.name)
-#         if self.highlight:
-#             MyFunctions.drawHighlightBox(self, painter, Qt.red)
+        super().paint(painter, option, widget)
+        painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, self.name)
          
     def mousePressEvent(self, evt):
-        QGraphicsEllipseItem.mousePressEvent(self, evt)
+        super().mousePressEvent(evt)
              
     def mouseMoveEvent(self, evt):
-        QGraphicsEllipseItem.mouseMoveEvent(self, evt)
+        super().mouseMoveEvent(evt)
         for e in self.edgeList:
             e.updatePosition()
                
 class UserNode(QGraphicsEllipseItem):
     
     def __init__(self, name, uid, gid, main):
-        QGraphicsEllipseItem.__init__(self, QRectF(-40,-20,80,40))
+        super().__init__(QRectF(-40,-20,80,40))
         self.setVisible(False)
-        self.setFlag(QGraphicsItem.ItemIsMovable, False)
-        self.setFlag(QGraphicsItem.ItemIsSelectable, True)
-        self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
+        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable, False)
+        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable, True)
+        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges, True)
         self.normal = QColor(230, 230, 230)
         self.color = QColor(230, 230, 230)
         self.colorForOther = main.mediumBlue
-        self.highlightColor = Qt.red
+        self.highlightColor = Qt.GlobalColor.red
         self.highlight = False
         self.main = main
         self.scene = main.scene
@@ -108,16 +108,14 @@ class UserNode(QGraphicsEllipseItem):
         pen = QPen(QColor(0, 0, 0))
         pen.setWidth(1.0)
         self.setPen(pen)
-        QGraphicsEllipseItem.paint(self, painter, option, widget)
+        super().paint(painter, option, widget)
         rect = QRectF(self.rect().x()-2*self.rect().width(), self.rect().y(), 5*self.rect().width(), self.rect().height())
-        painter.drawText(rect, Qt.AlignCenter, self.name)
-#         if self.highlight:
-#             MyFunctions.drawHighlightBox(self, painter, Qt.red)
+        painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, self.name)
             
     def mousePressEvent(self, evt):
-        QGraphicsEllipseItem.mousePressEvent(self, evt)
+        super().mousePressEvent(evt)
              
     def mouseMoveEvent(self, evt):
-        QGraphicsEllipseItem.mouseMoveEvent(self, evt)
+        super().mouseMoveEvent(evt)
         for e in self.edgeList:
             e.updatePosition()

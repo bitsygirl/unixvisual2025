@@ -1,6 +1,7 @@
-from PyQt4.QtGui import QDockWidget, QWidget, QGraphicsItem, QMessageBox, QTextCursor, QTextCharFormat, QTextBlock\
-                        , QTextBlockFormat, QTextFormat, QColor, qRgba, QScrollArea, QFileDialog, QDialog
-from PyQt4.QtCore import Qt, pyqtSignal, QRect
+from PyQt6.QtWidgets import (QDockWidget, QWidget, QMessageBox, QScrollArea, 
+                             QFileDialog, QDialog)
+from PyQt6.QtGui import QTextCursor, QTextCharFormat, QTextBlock, QTextBlockFormat, QColor
+from PyQt6.QtCore import Qt, pyqtSignal, QRect
 from Ui_ToolBox import *
 
 def is_binary(filename):
@@ -14,7 +15,7 @@ def is_binary(filename):
         CHUNKSIZE = 1024
         while 1:
             chunk = fin.read(CHUNKSIZE)
-            if '\0' in chunk: # found null byte
+            if b'\0' in chunk: # found null byte - fixed for Python 3
                 return True
             if len(chunk) < CHUNKSIZE:
                 break # done
@@ -24,10 +25,10 @@ def is_binary(filename):
 
 class RootDirEditDialog(QDialog):
     def __init__(self, main):
-        QDialog.__init__(self)
+        super().__init__()
         self.ui = Ui_RootInputDialog()
         self.ui.setupUi(self)
-        flags = Qt.Dialog | Qt.WindowStaysOnTopHint
+        flags = Qt.WindowType.Dialog | Qt.WindowType.WindowStaysOnTopHint
         self.setWindowFlags(flags)
         self.main = main
         self.ui.OKPushButton.clicked.connect(self.readinRootDir)
@@ -40,10 +41,10 @@ class RootDirEditDialog(QDialog):
         
 class ToolBoxDockWidget(QDockWidget):
     def __init__(self, parent = None):
-        QDockWidget.__init__(self, 'Tool Box', parent)
+        super().__init__('Tool Box', parent)
         self.parent = parent
-        self.setFeatures(QDockWidget.NoDockWidgetFeatures)
-        self.setAllowedAreas(Qt.LeftDockWidgetArea)
+        self.setFeatures(QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)
+        self.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea)
         self.setMaximumWidth(280)
         self.setMinimumWidth(280)
         
@@ -52,7 +53,7 @@ class ToolBoxDockWidget(QDockWidget):
   
 class ToolBox(QWidget):
     def __init__(self, main, parent = None):
-        QWidget.__init__(self, parent)
+        super().__init__(parent)
         self.scene = main.scene
         self.syscallScene = main.syscallViewScene
         self.main = main
@@ -71,8 +72,10 @@ class ToolBox(QWidget):
         
     def loadInCode(self):
         self.ui.strCodePath.clear()
-        self.syscallScene.codeFile = QFileDialog.getOpenFileName(self.main, 'Import Program File', directory=self.main.specDir+'/code', filter='All Files (*)',\
-                                               selectedFilter = None, options = QFileDialog.DontUseNativeDialog)
+        filename, _ = QFileDialog.getOpenFileName(self.main, 'Import Program File', 
+                                               directory=self.main.specDir+'/code', 
+                                               filter='All Files (*)')
+        self.syscallScene.codeFile = filename
         self.ui.strCodePath.setText(self.syscallScene.codeFile)
         if not self.main.ui.actionView_ProgramTrace.isChecked():
             self.main.ui.actionView_ProgramTrace.setChecked(True)
@@ -105,4 +108,3 @@ class ToolBox(QWidget):
             
     def resizeEvent(self, event):
         self.scroll.setGeometry(0, 0, self.geometry().width(), self.geometry().height())
-            

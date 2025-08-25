@@ -2,36 +2,33 @@
 Created on Mar 18, 2016
 
 @author: manwang
+Updated for PyQt6 compatibility
 '''
-
-from PyQt4.QtGui import QGraphicsTextItem, QPen, QTextBlockFormat, QTextCursor, QColor, QDialog, QApplication, QPushButton, \
-                        QTextEdit, QWidget, QVBoxLayout, QFont, QBrush, QFontMetricsF
-from PyQt4.QtCore import Qt, QString, QRect, QMetaObject
+from PyQt6.QtCore import Qt, QObject, QPointF, QRectF, QLineF, pyqtSignal, QTimer, QRect
+from PyQt6.QtWidgets import (QGraphicsTextItem, QDialog, QWidget, QVBoxLayout, 
+                             QPushButton, QTextEdit, QApplication)
+from PyQt6.QtGui import QPen, QBrush, QColor, QFont, QPainter, QPixmap, QIcon, QTransform
+from PyQt6 import QtCore
 import MyFunctions
 
-try:
-    _fromUtf8 = QString.fromUtf8
-except AttributeError:
-    _fromUtf8 = lambda s: s
-        
 class TitleNode(QGraphicsTextItem):
     def __init__(self, msg):
-        QGraphicsTextItem.__init__(self)
+        super().__init__()
         self.setHtml('<center>%s</center>'%msg)
         
     def paint(self, painter, option, widget=None):
-        QGraphicsTextItem.paint(self, painter, option, widget)
+        super().paint(painter, option, widget)
         
 class FilePermNode(QGraphicsTextItem):
     def __init__(self, parent, main):
-        QGraphicsTextItem.__init__(self, parent)
+        super().__init__(parent)
         self.main = main
         
     def paint(self, painter, option, widget=None):
-        QGraphicsTextItem.paint(self, painter, option, widget)
+        super().paint(painter, option, widget)
         
     def mousePressEvent(self, evt):
-        if evt.button() == Qt.LeftButton:
+        if evt.button() == Qt.MouseButton.LeftButton:  # Updated enum
             self.main.permissionCalDialog.show()
             self.main.permissionCalDialog.tabWidget.setCurrentIndex(1)
             permtxt = str(self.toPlainText())
@@ -39,39 +36,40 @@ class FilePermNode(QGraphicsTextItem):
             permtxt = permtxt[index1+len('Permission bits:')+1:index2]
             self.main.permissionCalDialog.octal2Letter.octalDisplayLab.setText(permtxt)
             self.main.permissionCalDialog.octal2Letter.updateCheckBoxes()
-        QGraphicsTextItem.mousePressEvent(self, evt)
+        super().mousePressEvent(evt)
         
 class Ui_CheckNodeDialog(object):
     def setupUi(self, Dialog):
-        Dialog.setObjectName(_fromUtf8("Dialog"))
+        Dialog.setObjectName("Dialog")
         Dialog.resize(200, 200)
         self.verticalLayoutWidget = QWidget(Dialog)
-        self.verticalLayoutWidget.setObjectName(_fromUtf8("verticalLayoutWidget"))
+        self.verticalLayoutWidget.setObjectName("verticalLayoutWidget")
         self.verticalLayout = QVBoxLayout(self.verticalLayoutWidget)
-        self.verticalLayout.setMargin(0)
-        self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
+        self.verticalLayout.setContentsMargins(0, 0, 0, 0)  # setMargin deprecated
+        self.verticalLayout.setObjectName("verticalLayout")
         self.analysisEdit = QTextEdit(self.verticalLayoutWidget)
         self.analysisEdit.setReadOnly(True)
-        self.analysisEdit.setObjectName(_fromUtf8("analysisEdit"))
+        self.analysisEdit.setObjectName("analysisEdit")
         self.verticalLayout.addWidget(self.analysisEdit)
         self.closePushButton = QPushButton(self.verticalLayoutWidget)
-        self.closePushButton.setObjectName(_fromUtf8("closePushButton"))
+        self.closePushButton.setObjectName("closePushButton")
         self.verticalLayout.addWidget(self.closePushButton)
         self.retranslateUi(Dialog)
-        QMetaObject.connectSlotsByName(Dialog)
+        QtCore.QMetaObject.connectSlotsByName(Dialog)
 
     def retranslateUi(self, Dialog):
-        Dialog.setWindowTitle(QApplication.translate("Dialog", "", None, QApplication.UnicodeUTF8))
-        self.closePushButton.setText(QApplication.translate("Dialog", "Close", None, QApplication.UnicodeUTF8))
+        _translate = QtCore.QCoreApplication.translate
+        Dialog.setWindowTitle(_translate("Dialog", ""))
+        self.closePushButton.setText(_translate("Dialog", "Close"))
 
 class CheckNodeDialog(QDialog):
     def __init__(self, main, analysis):
-        QDialog.__init__(self, main)
+        super().__init__(main)
         self.main = main
         self.ui = Ui_CheckNodeDialog()
         self.ui.setupUi(self)
         self.setLayout(self.ui.verticalLayout)
-        flags = Qt.Dialog | Qt.WindowStaysOnTopHint
+        flags = Qt.WindowType.Dialog | Qt.WindowType.WindowStaysOnTopHint  # Updated enum
         self.setWindowFlags(flags)
         self.ui.analysisEdit.setText(analysis)
         self.ui.closePushButton.clicked.connect(self.close)
@@ -84,7 +82,7 @@ class CheckNodeDialog(QDialog):
         
 class CheckNode(QGraphicsTextItem):
     def __init__(self, main, msg, iconMark):
-        QGraphicsTextItem.__init__(self)
+        super().__init__()
         self.main = main
         self.highlight = None
         self.setVisible(False)
@@ -154,7 +152,7 @@ class CheckNode(QGraphicsTextItem):
         self.setHtml('<center>%s</center>'%self.iconmark)
                   
     def mousePressEvent(self, evt):
-        if evt.button() == Qt.LeftButton:
+        if evt.button() == Qt.MouseButton.LeftButton:  # Updated enum
             if self in self.main.objectViewScene.clickableCheckNodes:
                 for section in self.main.objectViewScene.checkgridNodes:
                     for i in section:
@@ -199,14 +197,14 @@ class CheckNode(QGraphicsTextItem):
 #                         )
             else:
                 self.analysisDialog.show()
-        QGraphicsTextItem.mousePressEvent(self, evt)
+        super().mousePressEvent(evt)
         
     def paint(self, painter, option, widget=None):
         if self.highlight==True:
             self.highlightText()
         elif self.highlight == False:
             self.restoreText()
-        QGraphicsTextItem.paint(self, painter, option, widget)
+        super().paint(painter, option, widget)
         
 # class FrameNode(QGraphicsRectItem):
 #     def __init__(self, main):

@@ -2,10 +2,11 @@
 Created on Apr 20, 2015
 
 @author: manwang
+Updated for PyQt6 compatibility
 '''
 import re, errno, math, os, grp
-from PyQt4.QtCore import QPointF, Qt
-from PyQt4.QtGui import QPen, QBrush, QColor, QFont
+from PyQt6.QtCore import QPointF, Qt
+from PyQt6.QtGui import QPen, QBrush, QColor, QFont
 '''Colors'''
 EMERALD = QColor(80, 200,120)
 
@@ -67,13 +68,10 @@ def computeAngleDegree(point1, point2):
     return math.atan(temp)*180/math.pi
 
 def computeControlPointForBezierCurve(point1, point2, isFileConn):
-#     if isFileConn:
-#         ratio = 0.7*math.fabs(point1.angle-point2.angle)/point1.wedgeAngle
-#     else:
     ratio = 0.7
     midx = ratio*point1.pos().x()+(1-ratio)*point2.pos().x()
     midy = ratio*point1.pos().y()+(1-ratio)*point2.pos().y()
-    if isFileConn and point1.angle<point2.angle:
+    if isFileConn and hasattr(point1, 'angle') and hasattr(point2, 'angle') and point1.angle<point2.angle:
         c1 = QPointF((1-ratio)*point1.pos().x()+ratio*midx, (1-ratio)*point1.pos().y()+ratio*midy) 
         c2 = QPointF((1-ratio)*point2.pos().x()+ratio*midx, (1-ratio)*point2.pos().y()+ratio*midy) 
     else:
@@ -85,10 +83,10 @@ def setupComboBoxItems(comboBox, itemList):
     for i in itemList:
         comboBox.addItem(i)
         
-def drawHighlightBox(item, painter, color):
+def drawHighlightBox(item, painter, color=Qt.GlobalColor.red):
     painter.save()
     painter.setPen(QPen(QBrush(color), 2.0))
-    painter.setBrush(Qt.NoBrush)
+    painter.setBrush(Qt.BrushStyle.NoBrush)
     painter.drawRect(item.rect().adjusted(-5, -5, 5, 5))
     painter.restore()
     
@@ -101,28 +99,24 @@ def drawHighlightBkground(item, painter, color):
     
 def getGroupsOfUser(user):
     from sys import platform as _platform
-#     if _platform == "darwin":
-#         import pwd
-#         groups = [g.gr_name for g in grp.getgrall() if user in g.gr_mem]
-#         try:
-#             gid = pwd.getpwnam(user).pw_gid
-#         except KeyError:
-#             return groups
-#         groups.append(grp.getgrgid(gid).gr_name)
-#     else:
     import subprocess
-    output = subprocess.Popen(["groups", user], \
-                              stdout=subprocess.PIPE).communicate()[0]
-    startIndex = output.find(':')
-    if  startIndex != -1:
-        groups = output[startIndex+2:-1].split(' ')
-    else:
-        groups = output[:-1].split(' ')
-    return groups
+    try:
+        output = subprocess.Popen(["groups", user], 
+                                  stdout=subprocess.PIPE).communicate()[0]
+        # Handle bytes vs string for Python 3
+        if isinstance(output, bytes):
+            output = output.decode('utf-8')
+        startIndex = output.find(':')
+        if  startIndex != -1:
+            groups = output[startIndex+2:-1].split(' ')
+        else:
+            groups = output[:-1].split(' ')
+        return groups
+    except:
+        return []
 
 def getUserAndGroupListOnSystem(rootdir, progDir):
     userset, groupset, user_group_sys_mat = set(), set(), {}
-#     os.chdir(rootdir)
     from sys import platform as _platform
     if _platform == "darwin":
         import pwd
@@ -151,15 +145,25 @@ def getUserAndGroupListOnSystem(rootdir, progDir):
     else:
         import subprocess
         '''get all users'''
-        output = subprocess.Popen(["cut", "-d:", "-f1", "/etc/passwd"], \
-                                  stdout=subprocess.PIPE).communicate()[0]
-        userset = set(output.split('\n'))
-        userset = set(x for x in userset if x != '')
+        try:
+            output = subprocess.Popen(["cut", "-d:", "-f1", "/etc/passwd"], 
+                                      stdout=subprocess.PIPE).communicate()[0]
+            if isinstance(output, bytes):
+                output = output.decode('utf-8')
+            userset = set(output.split('\n'))
+            userset = set(x for x in userset if x != '')
+        except:
+            userset = set()
         '''get all groups'''
-        output = subprocess.Popen(["cut", "-d:", "-f1", "/etc/group"], \
-                                  stdout=subprocess.PIPE).communicate()[0]
-        groupset = set(output.split('\n'))
-        groupset = set(x for x in groupset if x != '')
+        try:
+            output = subprocess.Popen(["cut", "-d:", "-f1", "/etc/group"], 
+                                      stdout=subprocess.PIPE).communicate()[0]
+            if isinstance(output, bytes):
+                output = output.decode('utf-8')
+            groupset = set(output.split('\n'))
+            groupset = set(x for x in groupset if x != '')
+        except:
+            groupset = set()
         '''assign user to groups'''
         for u in userset:
             usergroup = getGroupsOfUser(u)

@@ -1,10 +1,22 @@
 '''
+
+# PyQt4/PyQt6 Compatibility Shim
+try:
+    from PyQt6.QtCore import Qt, QObject, QPointF, QRectF, QLineF, pyqtSignal, QTimer, QRect
+    from PyQt6.QtWidgets import *
+    from PyQt6.QtGui import QPen, QBrush, QColor, QFont, QPainter, QPixmap, QIcon, QTransform
+    USING_PYQT6 = True
+except ImportError:
+    from PyQt4.QtCore import Qt, QObject, QPointF, QRectF, QLineF, pyqtSignal, QTimer, QRect
+    from PyQt4.QtGui import *
+    USING_PYQT6 = False
+
+
 Created on Jun 4, 2015
 
 @author: manwang
 '''
 from unixpolicy import unixpolicy
-from PyQt4.QtGui import QMessageBox
 
 class DiagramIOHelper(object):
     def __init__(self, main):

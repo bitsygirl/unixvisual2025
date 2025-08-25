@@ -2,9 +2,11 @@
 Created on Jul 24, 2015
 
 @author: manwang
+Updated for PyQt6 compatibility
 '''
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt6.QtCore import *
+from PyQt6.QtWidgets import *
+from PyQt6.QtGui import *
 from Ui_SystemCallViewCodeLoad import Ui_SystemCallViewCodeLoad, Ui_SyscallOutputDialog
 from SystemCallViewCodeDisplay import SystemCallViewCodeDisplay
 from ProcessNodeParamDialog import ProcessNodeParamDialog
@@ -17,7 +19,7 @@ import os
         
 class SystemCallViewCodeLoadDlg(QDialog):
     def __init__(self, main):
-        QDialog.__init__(self)
+        super().__init__()
         self.ui = Ui_SystemCallViewCodeLoad()
         self.ui.setupUi(self)
         self.main = main
@@ -29,7 +31,7 @@ class SystemCallViewCodeLoadDlg(QDialog):
 
 class SystemCallOutputDialog(QDialog):
     def __init__(self, main):
-        QDialog.__init__(self)
+        super().__init__()
         self.ui = Ui_SyscallOutputDialog()
         self.ui.setupUi(self)
         self.main = main
@@ -41,7 +43,7 @@ class SystemCallOutputDialog(QDialog):
         
 class SystemCallViewScene(QGraphicsScene):
     def __init__(self, main):
-        QGraphicsScene.__init__(self, main)
+        super().__init__(main)
         self.main = main
         self.ruid = str(os.getuid())
         self.rgid = str(os.getgid())
@@ -64,11 +66,13 @@ class SystemCallViewScene(QGraphicsScene):
         
     def loadInCode(self):
         self.initParam()
-        self.codeFile = QFileDialog.getOpenFileName(self.main, 'Import Program File', directory='./code', filter='(*.c);;All Files(*.*)')
+        filename, _ = QFileDialog.getOpenFileName(self.main, 'Import Program File', directory='./code', filter='(*.c);;All Files(*.*)')
+        self.codeFile = filename
         self.codeLoadDlg.ui.lineEdit_Dir.setText(self.codeFile)
-        rect = QRect(0.3*self.main.geometry().width()+self.main.geometry().x(), 0.3*self.main.geometry().height()+self.main.geometry().y(), \
-                        self.codeLoadDlg.rect().width(), self.codeLoadDlg.rect().height())
-        self.codeLoadDlg.setWindowFlags(self.codeLoadDlg.windowFlags()|Qt.WindowStaysOnTopHint)
+        rect = QRect(int(0.3*self.main.geometry().width()+self.main.geometry().x()), 
+                     int(0.3*self.main.geometry().height()+self.main.geometry().y()),
+                     self.codeLoadDlg.rect().width(), self.codeLoadDlg.rect().height())
+        self.codeLoadDlg.setWindowFlags(self.codeLoadDlg.windowFlags()|Qt.WindowType.WindowStaysOnTopHint)
         self.codeLoadDlg.setGeometry(rect)
         self.codeLoadDlg.show()
         
@@ -93,39 +97,39 @@ class SystemCallViewScene(QGraphicsScene):
         rgid = 'Real GID: '+self.rgid
         rect = painter.fontMetrics().boundingRect(msg)
         rect.moveTo(20,yStart)
-        painter.drawText(rect, Qt.AlignLeft, msg)
+        painter.drawText(rect, Qt.AlignmentFlag.AlignLeft, msg)
         yStart+=rect.height()+5
         rect = painter.fontMetrics().boundingRect(ruid)
         rect.moveTo(20,yStart)
-        painter.drawText(rect, Qt.AlignLeft, ruid)
+        painter.drawText(rect, Qt.AlignmentFlag.AlignLeft, ruid)
         yStart+=rect.height()+5
         rect = painter.fontMetrics().boundingRect(rgid)
         rect.moveTo(20,yStart)
         yStart+=rect.height()+5
-        painter.drawText(rect, Qt.AlignLeft, rgid)
+        painter.drawText(rect, Qt.AlignmentFlag.AlignLeft, rgid)
         '''draw effective ids'''
         euid = 'Effective UID: '+self.euid
         egid = 'Effective GID: '+self.egid
         rect = painter.fontMetrics().boundingRect(euid)
         rect.moveTo(20,yStart)
         yStart+=rect.height()+5
-        painter.drawText(rect, Qt.AlignLeft, euid)
+        painter.drawText(rect, Qt.AlignmentFlag.AlignLeft, euid)
         rect = painter.fontMetrics().boundingRect(egid)
         rect.moveTo(20,yStart)
-        painter.drawText(rect, Qt.AlignLeft, egid)
-        QGraphicsScene.drawBackground(self,painter,QRectF(rect))
+        painter.drawText(rect, Qt.AlignmentFlag.AlignLeft, egid)
+        super().drawBackground(painter,QRectF(rect))
         self.main.view.viewport().update()
         
     '''Context menu when clicking process nodes'''
     def contextMenuEvent(self, evt):
-        item = self.itemAt(evt.scenePos())
+        item = self.itemAt(evt.scenePos(), QTransform())
         self.rightClickedItem = item
         menu = QMenu()
         if item:
             if isinstance(item, ProcessNode):
                 item.setSelected(True)
                 self.viewProcessParam()
-            menu.exec_(evt.screenPos())
+            menu.exec(evt.screenPos())
     
     def viewProcessParam(self):
         self.processParamDlg.setParam(self.rightClickedItem.process.name, self.rightClickedItem.process.operandList)
@@ -134,9 +138,9 @@ class SystemCallViewScene(QGraphicsScene):
     '''Run program and visualize'''
     def findSystemCalls(self, line):
         temp = line.replace(' ', '')
-        if temp == '' or temp[0] == '#' or temp.startwith('//'):
+        if temp == '' or temp[0] == '#' or temp.startswith('//'):
             return
-        for i in xrange(len(self.main.systemCallList)):
+        for i in range(len(self.main.systemCallList)):
             index = temp.find(self.main.systemCallList[i])
             if index != -1 and temp[index+1] == '(':
                 self.callWrapperForSystemCall(i)
@@ -165,7 +169,7 @@ class SystemCallViewScene(QGraphicsScene):
             y += intervalY
             if len(value) > 1:
                 intervalX = self.sceneRect().width()/(len(value)+1)
-                for i in xrange(len(value)):
+                for i in range(len(value)):
                     value[i].relativeX = intervalX*(i+1)/self.sceneRect().width()
                     value[i].relativeY = y
                     value[i].setPos(QPointF(value[i].relativeX*self.sceneRect().width(), value[i].relativeY))
@@ -293,4 +297,3 @@ class SystemCallViewScene(QGraphicsScene):
             self.checkReturnStatus(syscall, status, procnode)
             self.updateSyscallLayout()
             self.update()
-        

@@ -2,37 +2,37 @@
 Created on Jul 26, 2015
 
 @author: manwang
+Updated for PyQt6 compatibility
 '''
-from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QDialog, QMessageBox, QFileDialog
+from PyQt6.QtWidgets import QDialog, QFileDialog, QMessageBox
+from PyQt6.QtCore import Qt
 from Ui_CodeDialog import Ui_CodeDialog
 from subprocess import call
 
 class SystemCallViewCodeDisplay(QDialog):
     
     def __init__(self, main, scene):
-        QDialog.__init__(self)
+        super().__init__()
         self.main = main
         self.ui = Ui_CodeDialog()
         self.ui.setupUi(self)
         self.setLayout(self.ui.verticalLayout)
-        flags = Qt.Dialog# | Qt.WindowStaysOnTopHint
+        flags = Qt.WindowType.Dialog  # Updated enum syntax
         self.setWindowFlags(flags)
         self.ui.closePushButton.clicked.connect(self.close)
         self.ui.savePushButton.clicked.connect(self.saveCode)
-#         self.ui.runPushButton.clicked.connect(scene.runProgram)
         self.ui.runPushButton.clicked.connect(self.openDifferentCodeFile)
         self.syscallScene = scene
         self.codeFile = None
         
     def compileCode(self, codeFile):
         exeFile = codeFile[:codeFile.rfind('.')]
-#         import os.path
-#         if not os.path.exists(exeFile):
         call(["gcc", "-o", exeFile, codeFile, "-L./policies/code", "-lunixvisualwrap"])
     
     def openDifferentCodeFile(self):
-        codeFile = QFileDialog.getOpenFileName(self.main, 'Import Program File', directory='./code', filter='(*.c);;All Files(*.*)')
+        codeFile, _ = QFileDialog.getOpenFileName(self.main, 'Import Program File', 
+                                                  directory='./code', 
+                                                  filter='(*.c);;All Files(*.*)')
         codeFile = str(codeFile)
         import os.path
         if os.path.exists(codeFile):
@@ -59,4 +59,5 @@ class SystemCallViewCodeDisplay(QDialog):
         f.close()
         self.compileCode(self.sourceFile)
         self.main.syscallViewScene.runProgram()
-        QMessageBox.information(self, 'Information', "The changes have been saved!", buttons = QMessageBox.Ok)
+        QMessageBox.information(self, 'Information', "The changes have been saved!", 
+                               buttons=QMessageBox.StandardButton.Ok)

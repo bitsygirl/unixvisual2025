@@ -4,6 +4,7 @@ author: manwang
 description:
         Functions for converting a unix policy into a 
         set of data structures representing the policy.
+Updated for Python 3 compatibility
 """
 from collections import namedtuple
 from unixparse import unixparse
@@ -166,42 +167,42 @@ if __name__ == '__main__':
     else:
         source = sys.argv[1]
     flag, root, user_group_mat, mat1, mat2 = unixpolicy(source)
-    print '== Model type =='
-    print flag
-    print '== Root directory =='
-    print root
-    print '== User assignment to group =='
+    print('== Model type ==')
+    print(flag)
+    print('== Root directory ==')
+    print(root)
+    print('== User assignment to group ==')
     for key, value in user_group_mat.items():
-        print 'user = {0}'.format(key)
-        print '    groups = {0}'.format(','.join(value))
+        print('user = {0}'.format(key))
+        print('    groups = {0}'.format(','.join(value)))
     if flag:
-        print '== Object credential matrix =='
+        print('== Object credential matrix ==')
         for res, creddict in mat1.items():
-            print 'res = {0}'.format(res)
-            print '    directory = {0}'.format(creddict.directory)
-            print '        user = {0}'.format(creddict.user)
-            print '        group = {0}'.format(creddict.group)
-        print '== Object permission matrix =='
+            print('res = {0}'.format(res))
+            print('    directory = {0}'.format(creddict.directory))
+            print('        user = {0}'.format(creddict.user))
+            print('        group = {0}'.format(creddict.group))
+        print('== Object permission matrix ==')
         for res, permdict in mat2.items():
-            print 'res = {0}'.format(res)
-            print '    recursive = {0}'.format(permdict.recursive)
-            print '     permUser = {0}'.format(','.join(permdict.userperm))
-            print '     permGroup = {0}'.format(','.join(permdict.groupperm))
-            print '     permOther = {0}'.format(','.join(permdict.otherperm))
+            print('res = {0}'.format(res))
+            print('    recursive = {0}'.format(permdict.recursive))
+            print('     permUser = {0}'.format(','.join(permdict.userperm)))
+            print('     permGroup = {0}'.format(','.join(permdict.groupperm)))
+            print('     permOther = {0}'.format(','.join(permdict.otherperm)))
     else:
-        print '== User permissions to objects matrix =='
+        print('== User permissions to objects matrix ==')
         for user, resdict in mat1.items():
-            print 'user = {0}'.format(user)
+            print('user = {0}'.format(user))
             for res, perms in resdict.items():
-                print '    resource = {0}'.format(res)
-                print '        directory = {0}'.format(perms.directory)
-                print '        recursive = {0}'.format(perms.recursive)
-                print '        permissions = {0}'.format(','.join(perms.permissions))
-        print '== Group permissions to objects matrix =='
+                print('    resource = {0}'.format(res))
+                print('        directory = {0}'.format(perms.directory))
+                print('        recursive = {0}'.format(perms.recursive))
+                print('        permissions = {0}'.format(','.join(perms.permissions)))
+        print('== Group permissions to objects matrix ==')
         for group, resdict in mat2.items():
-            print 'group = {0}'.format(group)
+            print('group = {0}'.format(group))
             for res, perms in resdict.items():
-                print '    resource = {0}'.format(res)
-                print '        directory = {0}'.format(perms.directory)
-                print '        recursive = {0}'.format(perms.recursive)
-                print '        permissions = {0}'.format(','.join(perms.permissions))
+                print('    resource = {0}'.format(res))
+                print('        directory = {0}'.format(perms.directory))
+                print('        recursive = {0}'.format(perms.recursive))
+                print('        permissions = {0}'.format(','.join(perms.permissions)))

@@ -2,10 +2,12 @@
 Created on Apr 16, 2015
 
 @author: manwang
+Updated for PyQt6 and Python 3.12+ compatibility
 '''
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt6.QtCore import *
+from PyQt6.QtWidgets import *
+from PyQt6.QtGui import *
 from Ui_MainWindow import Ui_MainWindow
 from DiagramScene import DiagramScene
 from DiagramView import DiagramView
@@ -62,7 +64,7 @@ class MainWindow(QMainWindow):
     animationStopped = pyqtSignal()
     
     def __init__(self):
-        QMainWindow.__init__(self)
+        super().__init__()
         os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
         self.savedFileName = None
         self.currDir = os.path.abspath('./')
@@ -80,7 +82,8 @@ class MainWindow(QMainWindow):
         self.splitterRatio = 0.25
         
         if not os.path.isdir(self.diagramDir):
-            MyFunctions.make_sure_path_exists(self.diagramDir)
+            from MyFunctions import make_sure_path_exists
+            make_sure_path_exists(self.diagramDir)
             
         if os.path.exists(self.lastOpenedDirFile):
             with open(self.lastOpenedDirFile, 'r') as f:
@@ -89,7 +92,8 @@ class MainWindow(QMainWindow):
             self.currentFileDir = self.currentFileDir.replace('\n', '')
         else:
             self.currentFileDir = str(os.path.abspath(self.diagramDir))
-            MyFunctions.writeToFile(self.lastOpenedDirFile, self.currentFileDir)
+            from MyFunctions import writeToFile
+            writeToFile(self.lastOpenedDirFile, self.currentFileDir)
         self.windowUISetup()
         self.filebrowser = FileBrowserViewDialog(self.centralWidget(), self)
         self.filebrowser.setVisible(self.ui.actionView_User.isChecked() or self.ui.actionView_Group.isChecked())
@@ -106,20 +110,11 @@ class MainWindow(QMainWindow):
         self.objectViewScene = ObjectViewScene(self)
         self.objectViewScene.setVisibilityOfSceneItems(self.ui.actionView_Object.isChecked())
         
-        
         self.setupConnection()
-        
-#         self.isUNIX_flag, self.root_dir, self.user_group_mat, mat1, mat2 = unixpolicy(str('/Users/junt/Documents/unixdemo.unix'))
-#         self.obj_cred_mat, self.obj_perm_mat = mat1, mat2
                     
         self.ui.actionView_Process.setChecked(True)
         self.viewModeChanged(self.ui.actionView_Process)
-#         self.initUNIXModelAnimation()
-#         self.answerCrypto = AnswerCrypto(self)
-#         self.answerCrypto.encrypt_RSA()
-#         self.answerCrypto.decrypt_r()
         self.regenerateSpecInfo(None)
-        
         
     def initUNIXModelAnimation(self):
         self.modelAnimationWin = UNIXModelAnimation(self)
@@ -211,8 +206,6 @@ class MainWindow(QMainWindow):
         self.stopAnimationButton = QToolButton()
         self.stopAnimationButton.setIcon(QIcon(QPixmap('./icons/stop.png')))
         self.stopAnimationButton.setDisabled(True)
-#         self.ui.toolBar.addWidget(self.animationControlButton)
-#         self.ui.toolBar.addWidget(self.stopAnimationButton)
         
     def setupUi(self):
         self.ui = Ui_MainWindow()
@@ -221,23 +214,21 @@ class MainWindow(QMainWindow):
         self.modelTutorialScene = TutorialAnimationScene(self)
         
         '''VIEW SPLITTER'''
-        self.ui.viewSplitter = QSplitter(Qt.Horizontal, self.centralWidget())
+        self.ui.viewSplitter = QSplitter(Qt.Orientation.Horizontal, self.centralWidget())
         self.scene = DiagramScene(self)
-        self.view = DiagramView(self.scene, self)#self.ui.viewSplitter)
+        self.view = DiagramView(self.scene, self)
         self.view.setScene(self.scene)
-        self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.view.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         
         self.selfTestViewScene = SelfTestScene(self.view, self)
         self.explainTextEditWidget = QWidget()
         vlayout = QVBoxLayout(self.explainTextEditWidget)
         vlayout.setContentsMargins(0, 0, 0, 0)
-#         label = QLabel('Explanation')
-#         MyFunctions.setFontForUI(label, 14)
         self.explainTextEdit = QPlainTextEdit()
         self.explainTextEdit.setReadOnly(True)
-        MyFunctions.setFontForUI(self.explainTextEdit, 14)
-#         vlayout.addWidget(label)
+        from MyFunctions import setFontForUI
+        setFontForUI(self.explainTextEdit, 14)
         vlayout.addWidget(self.explainTextEdit)
         self.ui.viewSplitter.addWidget(self.view)
         self.ui.viewSplitter.addWidget(self.explainTextEditWidget)
@@ -246,7 +237,6 @@ class MainWindow(QMainWindow):
         self.setupToolbar()
         self.iohelper = DiagramIOHelper(self)
         self.autogradingTest = AutogradingTest(self)
-#         self.answerCrypto = AnswerCrypto(self)
         self.setupQueryWidget()
         self.setupToolBox()
         self.setupRootDirDialog()
@@ -254,26 +244,25 @@ class MainWindow(QMainWindow):
         self.permissionCalDialog = PermissionCalDialog(self)
         
     def closeEvent(self, evt):
-#         self.exitAnimation()
         self.animationStep = 0
         QApplication.closeAllWindows()
         
     def windowUISetup(self):
-        startX = 0.5*(QApplication.desktop().availableGeometry().width()-self.geometry().width())
-        startY = 0.5*(QApplication.desktop().availableGeometry().height()-self.geometry().height())
-        self.move(QPoint(startX, startY))
+        screen = QApplication.primaryScreen().availableGeometry()
+        startX = 0.5*(screen.width()-self.geometry().width())
+        startY = 0.5*(screen.height()-self.geometry().height())
+        self.move(QPoint(int(startX), int(startY)))
         self.setupUi()
         self.setWindowTitle(str('UNIXvisual'))
-        
     
     '''Change root directory'''
     def changeRootDir(self):
         filedialog = QFileDialog(self)
-        filedialog.setFilter(QDir.Dirs)
-        filename = filedialog.getExistingDirectory(self, 'Change Root Directory',\
-                                             self.currentFileDir,\
-                                             QFileDialog.ShowDirsOnly|QFileDialog.DontResolveSymlinks)
-        if not filename.isEmpty():
+        filedialog.setFileMode(QFileDialog.FileMode.Directory)
+        filename = filedialog.getExistingDirectory(self, 'Change Root Directory',
+                                             self.currentFileDir,
+                                             QFileDialog.Option.ShowDirsOnly|QFileDialog.Option.DontResolveSymlinks)
+        if filename:
             self.initParam()
             self.root_dir = str(filename)+'/'
             self.regenerateSpecInfo(None)
@@ -283,25 +272,22 @@ class MainWindow(QMainWindow):
         self.toolBoxDockWidget = ToolBoxDockWidget(self)
         self.toolBox = ToolBox(self, self.toolBoxDockWidget)
         self.toolBoxDockWidget.setWidget(self.toolBox)
-        self.addDockWidget(Qt.LeftDockWidgetArea, self.toolBoxDockWidget)
+        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.toolBoxDockWidget)
         self.toolBoxDockWidget.setVisible(False)
         
     def toggleToolBox(self):
         toolBoxWidth = self.toolBoxDockWidget.geometry().width()+5
         if self.toolBoxDockWidget.isVisible():
-            #self.writeToFile(self.logFile, self.getCurrentTimeString()+"Toolbox off\n")
             self.toolBoxDockWidget.hide()
             self.centralWX = 0
             self.centralDeductW -= toolBoxWidth
         else:
-            #self.writeToFile(self.logFile, self.getCurrentTimeString()+"Toolbox on\n")
             self.toolBoxDockWidget.show()
             self.centralWX = toolBoxWidth
             self.centralDeductW += toolBoxWidth
-        self.centralWidget().setGeometry(self.centralWX, self.centralWidget().geometry().y(), \
-                                         self.geometry().width()-self.centralDeductW, self.centralWidget().geometry().height())
+        self.centralWidget().setGeometry(int(self.centralWX), int(self.centralWidget().geometry().y()), 
+                                         int(self.geometry().width()-self.centralDeductW), int(self.centralWidget().geometry().height()))
         self.resizeViews()
-#         self.hintForToolBox()
     
     '''Root Edit Dialog'''
     def setupRootDirDialog(self):
@@ -309,10 +295,8 @@ class MainWindow(QMainWindow):
         
     '''Test window'''
     def showAutogradingTest(self):
-        #self.disableAllGui()
         self.mode = self.QUIZ_MODE
         self.autogradingTest.questionDlg.show()
-#         self.hintForTest()
         
     def decryptAutogradingAnswer(self):
         self.answerCrypto.decryptDlg.show()
@@ -322,7 +306,7 @@ class MainWindow(QMainWindow):
         self.queryWindowDockWidget = QueryDockWidget(self)
         self.queryWindow = QueryWindow(self.scene, self)
         self.queryWindowDockWidget.setWidget(self.queryWindow)
-        self.addDockWidget(Qt.RightDockWidgetArea, self.queryWindowDockWidget)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.queryWindowDockWidget)
         self.queryWindowDockWidget.setVisible(False)
         
     def togglePermissionCal(self):
@@ -333,23 +317,19 @@ class MainWindow(QMainWindow):
     
     def toggleQueryWindow(self):
         if self.queryWindowDockWidget.isVisible():
-            #self.writeToFile(self.logFile, self.getCurrentTimeString()+"Query Window off\n")
             self.queryWindowDockWidget.hide()
             self.mode = self.NORMAL_MODE
             self.centralDeductW -= self.WIDGET_WIDTH
         else:
-            #self.writeToFile(self.logFile, self.getCurrentTimeString()+"Query Window on\n")
             self.queryWindowDockWidget.show()
             self.mode = self.QUERY_MODE
             self.queryWindow.changeQueryInput()
             self.centralDeductW += self.WIDGET_WIDTH
-        self.centralWidget().setGeometry(self.centralWX, self.centralWidget().geometry().y(), self.geometry().width()-self.centralDeductW, self.centralWidget().geometry().height())
+        self.centralWidget().setGeometry(int(self.centralWX), int(self.centralWidget().geometry().y()), int(self.geometry().width()-self.centralDeductW), int(self.centralWidget().geometry().height()))
         self.resizeViews()
-#         self.hintForQueryWindow()
         
     def showSpecDialog(self):
         self.specDialog.show()
-#         self.hintForSpecWindow()
     
     def setupConnection(self):
         self.viewActionGroup.triggered.connect(self.viewModeChanged)
@@ -375,7 +355,6 @@ class MainWindow(QMainWindow):
         
     def closeGreeting(self):
         self.greetWin.close()
-#         self.modelAnimationWin.show()
     
     '''Toolbar response'''   
     def viewModeChanged(self, action):
@@ -390,42 +369,42 @@ class MainWindow(QMainWindow):
             self.focusNode = None
             self.scene.displaySeparate = True
             self.view.setScene(self.scene)
-            self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+            self.view.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
             if self.toolBoxDockWidget.isVisible():
                 self.toggleToolBox()
         elif action == self.ui.actionView_User:
             self.focusNode = None
             self.scene.displaySeparate = False
             self.view.setScene(self.scene)
-            self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+            self.view.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
             if self.toolBoxDockWidget.isVisible():
                 self.toggleToolBox()
         elif action == self.ui.actionView_Group:
             self.focusNode = None
             self.scene.displaySeparate = False
             self.view.setScene(self.scene)
-            self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+            self.view.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
             if self.toolBoxDockWidget.isVisible():
                 self.toggleToolBox()
         elif action == self.ui.actionView_ProgramTrace:
             self.scene.displaySeparate = False
             self.ui.viewSplitter.setHandleWidth(0)
             self.view.setScene(self.syscallViewScene)
-            self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+            self.view.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
             if not self.toolBoxDockWidget.isVisible():
                 self.toggleToolBox()
         elif action == self.ui.actionView_Process:
             self.selfTestViewScene.questionType = self.selfTestViewScene.PROCESS_QUES
             self.scene.displaySeparate = True
             self.view.setScene(self.scene)
-            self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+            self.view.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
             if self.toolBoxDockWidget.isVisible():
                 self.toggleToolBox()
         elif action == self.ui.actionView_Permission:
             self.selfTestViewScene.questionType = self.selfTestViewScene.PERM_QUES
             self.scene.displaySeparate = True
             self.view.setScene(self.scene)
-            self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+            self.view.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
             if self.toolBoxDockWidget.isVisible():
                 self.toggleToolBox()
         self.selfTestViewScene.setVisibilityOfSceneItems(self.ui.actionView_Process.isChecked() or self.ui.actionView_Permission.isChecked())
@@ -466,10 +445,9 @@ class MainWindow(QMainWindow):
         
     def computeSpecInfo(self):
         '''get users, groups and user assignment to groups on the real system'''
+        from MyFunctions import getUserAndGroupListOnSystem
         self.userSysList, self.groupSysList, self.user_group_sys_mat = \
-        MyFunctions.getUserAndGroupListOnSystem(self.root_dir, self.currDir)
-#         print self.userSysList, self.groupSysList
-#         print self.user_group_sys_mat
+        getUserAndGroupListOnSystem(self.root_dir, self.currDir)
         for u in self.userSysList:
             self.createUserNode(u, 0, 0)
         for g in self.groupSysList:
@@ -480,7 +458,7 @@ class MainWindow(QMainWindow):
                     for vv in v:
                         u.addToGroup(vv)
         '''create nodes for users in spec'''
-        self.userSpecList = self.user_group_mat.keys()
+        self.userSpecList = list(self.user_group_mat.keys())
         for u in self.userSpecList:
             self.createUserNode(u, 0, 0)
              
@@ -502,13 +480,13 @@ class MainWindow(QMainWindow):
         if specfile:
             self.specDialog.readSpecToDialog(specfile)
         self.scene.resetScreen()
-        self.root_dir = MyFunctions.getAbsolutePath(self.root_dir)
-        #self.root_dir = os.path.normpath(self.root_dir)
+        from MyFunctions import getAbsolutePath, checkDirectoryExistence
+        self.root_dir = getAbsolutePath(self.root_dir)
         import re
         self.root_dir = re.sub('/+', '/', self.root_dir)
-        if not MyFunctions.checkDirectoryExistence(self.root_dir):
+        if not checkDirectoryExistence(self.root_dir):
             self.access_root_dir = False
-            QMessageBox.critical(self, 'Error', 'Specified root directory does not exist on the system!', QMessageBox.Ok)
+            QMessageBox.critical(self, 'Error', 'Specified root directory does not exist on the system!', QMessageBox.StandardButton.Ok)
             return -1
         self.access_root_dir = True
         self.removeAllItems()
@@ -530,25 +508,23 @@ class MainWindow(QMainWindow):
         self.selfTestViewScene.updateLayout()
         
     def showModelTutorial(self, tutorialOn, detailMode):
-        print 'showModelTutorial: '+str(detailMode)
+        print('showModelTutorial: '+str(detailMode))
         if tutorialOn:
             self.view.setScene(self.modelTutorialScene)
             self.modelTutorialScene.startAnimation(detailMode)
          
     def importUNIXSpec(self):
-        filename = QFileDialog.getOpenFileName(self, 'Import from UNIX Spec', directory=self.currentFileDir, filter='Specification File (*.unix)')
-        if not filename.isEmpty():
+        filename, _ = QFileDialog.getOpenFileName(self, 'Import from UNIX Spec', directory=self.currentFileDir, filter='Specification File (*.unix)')
+        if filename:
+            from PyQt6.QtCore import QFileInfo
             self.specDir = QFileInfo(filename).absolutePath()
             self.initParam()
             try:
                 self.isUNIX_flag, self.root_dir, self.user_group_mat, mat1, mat2 = unixpolicy(str(filename))
                 if self.isUNIX_flag:
                     self.obj_cred_mat, self.obj_perm_mat = mat1, mat2
-#                     print self.obj_cred_mat
-#                     print self.obj_perm_mat
                 else:
                     self.user_obj_perm_mat, self.group_obj_perm_mat = mat1, mat2
-                #self.saveLastOpenedPolicyDir(str(filename))
             except Exception as e:
                 QMessageBox.critical(self, 'Error', str(e))
                 return -1
@@ -571,41 +547,39 @@ class MainWindow(QMainWindow):
         self.autogradingTest.toolbarAllItems(state)
         if state and self.oldspec:
             self.iohelper.importSpec(self.oldspec)
-#         self.newDiagram()
         
     '''view update'''
     def resizeEvent(self, event):
-        QMainWindow.resizeEvent(self, event)
+        super().resizeEvent(event)
         self.resizeViews()
     
     def changeViewSizeForSeparateView(self):
         ratio = self.splitterRatio
-        self.view.setGeometry(0,0,(1-ratio)*self.ui.viewSplitter.geometry().width(), self.ui.viewSplitter.geometry().height())
+        self.view.setGeometry(0,0,int((1-ratio)*self.ui.viewSplitter.geometry().width()), self.ui.viewSplitter.geometry().height())
         self.scene.setSceneRect(QRectF(self.view.geometry()))
         currentSizes = self.ui.viewSplitter.sizes()
-        currentSizes[0] = (1-ratio)*self.ui.viewSplitter.geometry().width()
-        currentSizes[1] = ratio*self.ui.viewSplitter.geometry().width()
+        currentSizes[0] = int((1-ratio)*self.ui.viewSplitter.geometry().width())
+        currentSizes[1] = int(ratio*self.ui.viewSplitter.geometry().width())
         self.ui.viewSplitter.setSizes(currentSizes)
 
     def changeViewSizeForMainView(self):
         ratio = 0
-        self.view.setGeometry(0,0,(1-ratio)*self.ui.viewSplitter.geometry().width(), self.ui.viewSplitter.geometry().height())
+        self.view.setGeometry(0,0,int((1-ratio)*self.ui.viewSplitter.geometry().width()), self.ui.viewSplitter.geometry().height())
         self.scene.setSceneRect(QRectF(self.view.geometry()))
         currentSizes = self.ui.viewSplitter.sizes()
-        currentSizes[0] = (1-ratio)*self.ui.viewSplitter.geometry().width()
-        currentSizes[1] = ratio*self.ui.viewSplitter.geometry().width()
+        currentSizes[0] = int((1-ratio)*self.ui.viewSplitter.geometry().width())
+        currentSizes[1] = int(ratio*self.ui.viewSplitter.geometry().width())
         self.ui.viewSplitter.setSizes(currentSizes)
         
     def resizeViews(self):
-        self.ui.viewSplitter.setGeometry(0, 0, self.centralWidget().geometry().width(), self.centralWidget().geometry().height())
+        self.ui.viewSplitter.setGeometry(0, 0, int(self.centralWidget().geometry().width()), int(self.centralWidget().geometry().height()))
         if self.scene.displaySeparate:
             self.changeViewSizeForSeparateView()
         else:
             self.changeViewSizeForMainView()
         self.view.centerOn(0.5*self.view.viewport().width(), 0.5*self.view.viewport().height())
         self.syscallViewScene.setSceneRect(0, 0, self.view.geometry().width(), 5000)
-#         self.modelTutorialScene.setSceneRect(0, 0, self.view.geometry().width(), self.view.geometry().height())
-        self.filebrowser.setGeometry(0.46*self.view.geometry().width(), 0, 0.54*self.view.geometry().width(), self.view.geometry().height())
+        self.filebrowser.setGeometry(int(0.46*self.view.geometry().width()), 0, int(0.54*self.view.geometry().width()), int(self.view.geometry().height()))
         self.updateAllItemPos()
         
     def explainTexteditHighlightLastLines(self):
@@ -617,18 +591,18 @@ class MainWindow(QMainWindow):
     def setOutputHighlight(self):
         cursor = QTextCursor(self.explainTextEdit.textCursor())
         blockFormat = QTextBlockFormat(cursor.blockFormat())
-        blockFormat.setBackground(QColor(qRgba(187,255,255, 10)))
+        blockFormat.setBackground(QColor(187,255,255, 10))
         blockFormat.setNonBreakableLines(True)
-        blockFormat.setPageBreakPolicy(QTextFormat.PageBreak_AlwaysBefore)
+        blockFormat.setPageBreakPolicy(QTextFormat.PageBreakPolicy.PageBreak_AlwaysBefore)
         cursor.setBlockFormat(blockFormat)
-        it = QTextBlock.iterator(cursor.block().begin())
+        it = cursor.block().begin()
         while not it.atEnd():
             charFormat = QTextCharFormat(it.fragment().charFormat())
             tempCursor = QTextCursor(cursor)
             tempCursor.setPosition(it.fragment().position())
-            tempCursor.setPosition(it.fragment().position() + it.fragment().length(), QTextCursor.KeepAnchor)
+            tempCursor.setPosition(it.fragment().position() + it.fragment().length(), QTextCursor.MoveMode.KeepAnchor)
             tempCursor.setCharFormat(charFormat)
-            it+=1
+            it += 1
             
     def resetOutputText(self):
         self.explainTextEdit.clear()
@@ -636,16 +610,16 @@ class MainWindow(QMainWindow):
         blockFormat = QTextBlockFormat(cursor.blockFormat())
         blockFormat.setBackground(QColor("white"))
         blockFormat.setNonBreakableLines(True)
-        blockFormat.setPageBreakPolicy(QTextFormat.PageBreak_AlwaysBefore)
+        blockFormat.setPageBreakPolicy(QTextFormat.PageBreakPolicy.PageBreak_AlwaysBefore)
         cursor.setBlockFormat(blockFormat)
-        it = QTextBlock.iterator(cursor.block().begin())
+        it = cursor.block().begin()
         while it < self.prevCursor+1:
             charFormat = QTextCharFormat(it.fragment().charFormat())
             tempCursor = QTextCursor(cursor)
             tempCursor.setPosition(it.fragment().position())
-            tempCursor.setPosition(it.fragment().position() + it.fragment().length(), QTextCursor.KeepAnchor)
+            tempCursor.setPosition(it.fragment().position() + it.fragment().length(), QTextCursor.MoveMode.KeepAnchor)
             tempCursor.setCharFormat(charFormat)
-            it+=1
+            it += 1
         self.explainTextEdit.appendPlainText(self.prevText)
         self.cursor = cursor
         
@@ -676,19 +650,19 @@ class MainWindow(QMainWindow):
                             self.groupFrame.relativeX = self.groupFrame.pos().x()/self.scene.sceneRect().width()
                             self.groupFrame.relativeY = self.groupFrame.pos().y()/self.scene.sceneRect().height()
                         self.groupFrame.setVisible(len(glist)!=0)
-                elif isinstance(i, EdgeItem):
+                elif hasattr(i, 'setLine'):  # EdgeItem check
                     i.setLine(QLineF(i.startItem.pos(), i.endItem.pos()))
         elif self.ui.actionView_ProgramTrace.isChecked():
             for i in self.syscallViewScene.items():
                 i.setVisible(True)
                 if isinstance(i, ProcessNode):
                     i.setPos(QPointF(i.relativeX*self.syscallViewScene.sceneRect().width(), i.relativeY))
-                elif isinstance(i, EdgeItem):
+                elif hasattr(i, 'setLine'):  # EdgeItem check
                     i.setLine(QLineF(i.startItem.pos(), i.endItem.pos()))
                     
     '''animation'''
     def setAnimationInterval(self):
-        interval, accept = QInputDialog.getInt(self, 'Set Interval(second)', '', value=self.timerInterval/1000, min=1, max=10, step=1)
+        interval, accept = QInputDialog.getInt(self, 'Set Interval(second)', '', value=self.timerInterval//1000, min=1, max=10, step=1)
         if accept:
             self.timerInterval = interval * 1000
             
@@ -729,9 +703,9 @@ class MainWindow(QMainWindow):
              
     '''node operation'''
     def setNodePos(self, i):
-        if self.ui.actionView_ProgramTrace.isChecked():# or self.ui.actionView_SystemCall.isChecked():
+        if self.ui.actionView_ProgramTrace.isChecked():
             if isinstance(i, ProcessNode):
-                i.setPos(QPointF(i.relativeX*self.view.viewport().width(),\
+                i.setPos(QPointF(i.relativeX*self.view.viewport().width(),
                                   i.relativeY))
         elif self.ui.actionView_User.isChecked() or self.ui.actionView_Group.isChecked():
             if isinstance(i, UserNode) or isinstance(i, GroupNode) or isinstance(i, GeneralNode):
@@ -750,6 +724,7 @@ class MainWindow(QMainWindow):
         self.syscallViewScene.addItem(self.loginProcessNode)
         self.loginProcessNode.relativeX, self.loginProcessNode.relativeY = 0.5, 100+100
         self.setNodePos(self.loginProcessNode)
+        from EdgeItem import EdgeItem
         edge = EdgeItem(EdgeItem.PROCESS_CONN, self.initProcessNode, self.loginProcessNode, self)
         edge.setVisible(True)
         self.initProcessNode.edgeList.append(edge)
@@ -764,6 +739,7 @@ class MainWindow(QMainWindow):
         self.scene.addItem(self.otherGeneralNode)
     
     def createGeneralEdge(self, usernode):
+        from EdgeItem import EdgeItem
         self.userGeneralEdge = EdgeItem(EdgeItem.GENERAL_CONN, usernode, self.userGeneralNode, self)
         self.otherGeneralEdge = EdgeItem(EdgeItem.GENERAL_CONN, usernode, self.otherGeneralNode, self)
         self.scene.addItem(self.userGeneralEdge)
@@ -786,7 +762,8 @@ class MainWindow(QMainWindow):
         self.userComboBox.addItem(unode.name)
     
     def removeUserNode(self, unode):
-        MyFunctions.removeItemFromCombobox(self.userComboBox, unode.name)
+        from MyFunctions import removeItemFromCombobox
+        removeItemFromCombobox(self.userComboBox, unode.name)
         self.scene.removeItem(unode)
         self.scene.userNodeList.remove(unode)
         del unode
@@ -798,7 +775,8 @@ class MainWindow(QMainWindow):
         self.groupComboBox.addItem(gnode.name)
         
     def removeGroupNode(self, gnode):
-        MyFunctions.removeItemFromCombobox(self.groupComboBox, gnode.name)
+        from MyFunctions import removeItemFromCombobox
+        removeItemFromCombobox(self.groupComboBox, gnode.name)
         self.scene.removeItem(gnode)
         self.scene.groupNodeList.remove(gnode)
         del gnode
@@ -838,7 +816,6 @@ class MainWindow(QMainWindow):
         return -1
         
     def selectUserNode(self, index):
-#         self.exitAnimation()
         self.animationStep = 0
         self.scene.resetScreen()
         self.groupFrame.setVisible(True)
@@ -848,12 +825,11 @@ class MainWindow(QMainWindow):
         usernode.setVisible(True)
         usernode.highlight = True
         self.setToShow(usernode)
-        for i in xrange(len(userNodeList)):
+        for i in range(len(userNodeList)):
             if i != index:
                 userNodeList[i].setVisible(False)
                 for e in userNodeList[i].edgeList:
                     e.setVisible(False)
-                    #e.stopAnimation()
         self.scene.animateUser.emit(usernode)
         
     def checkPermissionOther(self):
@@ -889,7 +865,6 @@ class MainWindow(QMainWindow):
         return proc, procnode
                     
     def selectGroupNode(self, index):
-#         self.exitAnimation()
         self.animationStep = 0
         self.scene.resetScreen()
         groupNodeList = self.scene.groupNodeList
@@ -906,23 +881,15 @@ class MainWindow(QMainWindow):
         self.groupFrame.relativeY = self.groupFrame.pos().y()/self.scene.sceneRect().height()
         self.scene.hint = 'Group'
         self.arrangeUserNodeForDisplay(groupnode.userNodes)
-        for i in xrange(len(groupNodeList)):
+        for i in range(len(groupNodeList)):
             if i != index:
                 groupNodeList[i].setVisible(False)
                 for e in groupNodeList[i].edgeList:
                     e.setVisible(False)
-                    #e.stopAnimation()
         for e in groupnode.edgeList:
             e.setVisible(True)
             e.updatePosition()
         self.scene.animateGroup.emit(groupnode)
-        
-    '''view animations'''
-#     def exitAnimation(self):
-#         self.scene.hint = ''
-#         self.stopAnimationTimer()
-#         self.animationStep = 0
-#         self.animationType = None
         
     def onAnimateUser(self, usernode):
         self.arrangeGroupNodeForDisplay(usernode.groupNodes)
@@ -942,11 +909,6 @@ class MainWindow(QMainWindow):
         if self.filebrowser.isVisible():
             self.filebrowser.mode = self.filebrowser.USER_MD
             self.filebrowser.filterActionChanged(usernode.name, None)
-#         else:
-#             self.animationType = self.ANIMA_USER
-#             self.animationParameters = [usernode]
-#             self.scene.hint = 'User'
-#             self.startAnimationTimer()
         
     def onAnimateGroup(self, groupnode):
         if self.filebrowser.isVisible():
@@ -955,6 +917,3 @@ class MainWindow(QMainWindow):
         else:
             self.animationType = self.ANIMA_GROUP
             self.animationParameters = [groupnode]
-#             self.startAnimationTimer()
-                
-        

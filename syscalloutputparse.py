@@ -2,6 +2,7 @@
 Created on Aug 10, 2015
 
 @author: manwang
+Updated for Python 3 compatibility
 '''
 from pyparsing import *
 from utils import *
@@ -54,4 +55,4 @@ if __name__ == '__main__':
     text = "Initial pid: 8355\nInitial euid: 100\nInitial egid: 200\nCall:open\nID: 100\nParameter: myfile\nParameter: 1001, 384\nStatus:4\n"
     text+="Call:read\nID: 200\nParameter: myfile\nError: omg haha\nStatus:4\n"
     result = syscalloutputparse(text)
-    print result
+    print(result)

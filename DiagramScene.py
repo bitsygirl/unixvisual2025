@@ -2,11 +2,12 @@
 Created on Apr 20, 2015
 
 @author: manwang
+Updated for PyQt6 compatibility
 '''
 
-from PyQt4.QtCore import QRect, QRectF, Qt, QPointF, QLineF, QString, pyqtSignal, QTimer
-from PyQt4.QtGui import QGraphicsScene, QGraphicsView, QPainter, QPen, QBrush, QColor, QTransform, QPainterPath, QMenu, \
-                        QGraphicsEllipseItem, QFont, QGraphicsItem
+from PyQt6.QtCore import QRect, QRectF, Qt, QPointF, QLineF, pyqtSignal, QTimer
+from PyQt6.QtWidgets import QGraphicsScene, QGraphicsView, QGraphicsEllipseItem, QGraphicsItem, QMenu
+from PyQt6.QtGui import QPainter, QPen, QBrush, QColor, QTransform, QPainterPath, QFont
 from GroupNode import GroupFrameNode
 from UserNode import GeneralNode
 import os, socket, datetime
@@ -23,7 +24,7 @@ class DiagramScene(QGraphicsScene):
     animateSelfTest_Program = pyqtSignal(QGraphicsItem)
     
     def __init__(self, mainWindow):
-        QGraphicsScene.__init__(self, mainWindow)
+        super().__init__(mainWindow)
         self.hostname = socket.gethostname() 
         self.pid = os.getpid()
         self.date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -100,14 +101,14 @@ class DiagramScene(QGraphicsScene):
         self.groupNodeList = []
         
     def mousePressEvent(self, evt):
-        QGraphicsScene.mousePressEvent(self, evt)
+        super().mousePressEvent(evt)
             
     def mouseReleaseEvent(self, evt):
-        QGraphicsScene.mouseReleaseEvent(self, evt)
+        super().mouseReleaseEvent(evt)
         self.update()
         
     def mouseMoveEvent(self, evt):
-        QGraphicsScene.mouseMoveEvent(self, evt)
+        super().mouseMoveEvent(evt)
         self.update()
         
     def drawBackground(self, painter, rect):
@@ -156,6 +157,6 @@ class DiagramScene(QGraphicsScene):
     
     def drawListRow(self, text, g, x, y, width):
         lines = self.wrap(text, width, g)
-        for i in xrange(len(lines)):
+        for i in range(len(lines)):
             liney = y + (i * g.fontMetrics().boundingRect(text).height())
             g.drawText(x,liney, lines[i])

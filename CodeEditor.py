@@ -2,14 +2,17 @@
 Created on Jul 27, 2015
 
 @author: manwang
+Updated for PyQt6 compatibility
 '''
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+
+from PyQt6.QtWidgets import QWidget, QPlainTextEdit, QTextEdit
+from PyQt6.QtCore import Qt, QRect, QSize
+from PyQt6.QtGui import QPainter, QColor, QTextBlock, QTextFormat
 
 class LineNumberArea(QWidget):
     
     def __init__(self, editor):
-        QWidget.__init__(self, editor)
+        super().__init__(editor)
         self.codeEditor = editor
 
     def sizeHint(self):
@@ -20,8 +23,8 @@ class LineNumberArea(QWidget):
 
 class CodeEditor(QPlainTextEdit):
 
-    def __init__(self, parent = 0):
-        QPlainTextEdit.__init__(self, parent)
+    def __init__(self, parent = None):
+        super().__init__(parent)
         self.lineNumberArea = LineNumberArea(self)
         self.blockCountChanged.connect(lambda linenumber: self.updateLineNumberAreaWidth(linenumber))
         self.updateRequest.connect(lambda areaRect, width: self.updateLineNumberArea(areaRect, width))
@@ -32,33 +35,33 @@ class CodeEditor(QPlainTextEdit):
 
     def lineNumberAreaPaintEvent(self, event):
         painter = QPainter(self.lineNumberArea)
-        painter.fillRect(event.rect(), Qt.lightGray)
-        block = QTextBlock(self.firstVisibleBlock())
+        painter.fillRect(event.rect(), Qt.GlobalColor.lightGray)
+        block = self.firstVisibleBlock()
         blockNumber = block.blockNumber()
-        top = (int)(self.blockBoundingGeometry(block).translated(self.contentOffset()).top())
-        bottom = top + (int)(self.blockBoundingRect(block).height())
+        top = int(self.blockBoundingGeometry(block).translated(self.contentOffset()).top())
+        bottom = top + int(self.blockBoundingRect(block).height())
         while block.isValid() and top <= event.rect().bottom():
             if block.isVisible() and bottom >= event.rect().top():
-                number = QString.number(blockNumber + 1)
-                painter.setPen(Qt.black)
+                number = str(blockNumber + 1)  # QString removed in PyQt6
+                painter.setPen(Qt.GlobalColor.black)
                 painter.drawText(0, top, self.lineNumberArea.width(), self.fontMetrics().height(),
-                                 Qt.AlignRight, number)
+                                 Qt.AlignmentFlag.AlignRight, number)
             block = block.next()
             top = bottom
-            bottom = top + (int)(self.blockBoundingRect(block).height())
-            blockNumber+=1
+            bottom = top + int(self.blockBoundingRect(block).height())
+            blockNumber += 1
     
     def lineNumberAreaWidth(self):
         digits = 1
         max1 = max(1, self.blockCount())
         while max1 >= 10:
-            max1 /= 10
+            max1 //= 10  # Use integer division for Python 3
             digits += 1
-        space = 3 + self.fontMetrics().width(QString('9')) * digits
+        space = 3 + self.fontMetrics().horizontalAdvance('9') * digits  # width() deprecated
         return space
 
     def resizeEvent(self, event):
-        QPlainTextEdit.resizeEvent(self, event)
+        super().resizeEvent(event)
         cr = self.contentsRect()
         self.lineNumberArea.setGeometry(QRect(cr.left(), cr.top(), self.lineNumberAreaWidth(), cr.height()))
 
@@ -74,12 +77,12 @@ class CodeEditor(QPlainTextEdit):
             self.updateLineNumberAreaWidth(0)
 
     def highlightCurrentLine(self):
-        extraSelections = []#<QTextEdit.ExtraSelection>
+        extraSelections = []
         if not self.isReadOnly():
             selection = QTextEdit.ExtraSelection()
-            lineColor = QColor(Qt.yellow).lighter(160)
+            lineColor = QColor(Qt.GlobalColor.yellow).lighter(160)
             selection.format.setBackground(lineColor)
-            selection.format.setProperty(QTextFormat.FullWidthSelection, True)
+            selection.format.setProperty(QTextFormat.Property.FullWidthSelection, True)
             selection.cursor = self.textCursor()
             selection.cursor.clearSelection()
             extraSelections.append(selection)

@@ -1,6 +1,7 @@
-from PyQt4.QtGui import QDockWidget, QWidget, QGraphicsItem, QMessageBox, QTextCursor, QTextCharFormat, QTextBlock\
-                        , QTextBlockFormat, QTextFormat, QColor, qRgba
-from PyQt4.QtCore import Qt, pyqtSignal
+from PyQt6.QtWidgets import (QDockWidget, QWidget, QMessageBox)
+from PyQt6.QtGui import (QTextCursor, QTextCharFormat, QTextBlock, 
+                         QTextBlockFormat, QColor)
+from PyQt6.QtCore import Qt, pyqtSignal
 from Ui_QueryWindow import Ui_QueryWindow
 from QueryOutput import QueryOutput
 import PermissionChecker
@@ -8,10 +9,10 @@ import os, stat, re
 
 class QueryDockWidget(QDockWidget):
     def __init__(self, parent = None):
-        QDockWidget.__init__(self, 'Query Window', parent)
+        super().__init__('Query Window', parent)
         self.main = parent
-        self.setFeatures(QDockWidget.DockWidgetMovable|QDockWidget.DockWidgetFloatable)
-        self.setAllowedAreas(Qt.RightDockWidgetArea)
+        self.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetMovable|QDockWidget.DockWidgetFeature.DockWidgetFloatable)
+        self.setAllowedAreas(Qt.DockWidgetArea.RightDockWidgetArea)
         
     def resizeEvent(self, event):
         self.main.resizeViews()
@@ -46,7 +47,7 @@ class QueryWindow(QWidget):
     animateQuery7 = pyqtSignal(str, str)
     
     def __init__(self, scene, parent = None):
-        QWidget.__init__(self, parent)
+        super().__init__(parent)
         
         self.scene = scene
         self.main = parent
@@ -59,7 +60,7 @@ class QueryWindow(QWidget):
         self.ui.queryInputGroupBox.setLayout(self.ui.queryInputLayout)
         self.ui.runQueryGroupBox.setLayout(self.ui.runQueryLayout)
      
-        for i in xrange(len(self.QUESTIONS)):
+        for i in range(len(self.QUESTIONS)):  # xrange → range for Python 3
             self.ui.queryListWidget.addItem(self.QUESTIONS[i])
                  
         self.setQueryForQuestion(0)
@@ -81,7 +82,7 @@ class QueryWindow(QWidget):
         self.queryResultTextEdit.clear()
         
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Enter:
+        if event.key() == Qt.Key.Key_Enter:  # Updated enum
             self.runQuery()
     
     def clearAllInputspace(self):
@@ -188,16 +189,16 @@ class QueryWindow(QWidget):
         lineCnt = self.queryResultTextEdit.toPlainText().count('\n')
         cursor = QTextCursor(self.queryResultTextEdit.textCursor())
         blockFormat = QTextBlockFormat(cursor.blockFormat())
-        blockFormat.setBackground(QColor(qRgba(187,255,255, 10)))#155,246,143,128)))
+        blockFormat.setBackground(QColor(187, 255, 255, 10))  # qRgba removed in PyQt6
         blockFormat.setNonBreakableLines(True)
-        blockFormat.setPageBreakPolicy(QTextFormat.PageBreak_AlwaysBefore)
+        blockFormat.setPageBreakPolicy(QTextFormat.PageBreakPolicy.PageBreak_AlwaysBefore)  # Updated enum
         cursor.setBlockFormat(blockFormat)
-        it = QTextBlock.iterator(cursor.block().begin())
+        it = cursor.block().begin()
         while not it.atEnd():
             charFormat = QTextCharFormat(it.fragment().charFormat())
             tempCursor = QTextCursor(cursor)
             tempCursor.setPosition(it.fragment().position())
-            tempCursor.setPosition(it.fragment().position() + it.fragment().length(), QTextCursor.KeepAnchor)
+            tempCursor.setPosition(it.fragment().position() + it.fragment().length(), QTextCursor.MoveMode.KeepAnchor)  # Updated enum
             tempCursor.setCharFormat(charFormat)
             self.count+=1
             
@@ -207,14 +208,14 @@ class QueryWindow(QWidget):
         blockFormat = QTextBlockFormat(cursor.blockFormat())
         blockFormat.setBackground(QColor("white"))
         blockFormat.setNonBreakableLines(True)
-        blockFormat.setPageBreakPolicy(QTextFormat.PageBreak_AlwaysBefore)
+        blockFormat.setPageBreakPolicy(QTextFormat.PageBreakPolicy.PageBreak_AlwaysBefore)  # Updated enum
         cursor.setBlockFormat(blockFormat)
-        it = QTextBlock.iterator(cursor.block().begin())
+        it = cursor.block().begin()
         while it < self.prevCursor+1:
             charFormat = QTextCharFormat(it.fragment().charFormat())
             tempCursor = QTextCursor(cursor)
             tempCursor.setPosition(it.fragment().position())
-            tempCursor.setPosition(it.fragment().position() + it.fragment().length(), QTextCursor.KeepAnchor)
+            tempCursor.setPosition(it.fragment().position() + it.fragment().length(), QTextCursor.MoveMode.KeepAnchor)  # Updated enum
             tempCursor.setCharFormat(charFormat)
             it+=1
         self.queryResultTextEdit.appendPlainText(self.prevText)
@@ -231,8 +232,6 @@ class QueryWindow(QWidget):
         else:
             output = 'The users are: ' + ', '.join(temp)
         output+='.\n'
-#         if self.animationEnabled:
-#             self.animateQuery0.emit(rolename, username, objname)
         self.queryResultTextEdit.appendPlainText('[query 0] %s.' % self.QUESTIONS[0])
         self.queryResultTextEdit.appendPlainText(output)
     
@@ -252,8 +251,6 @@ class QueryWindow(QWidget):
         
     def runQuery2(self, groupname):
         output=''
-#         if self.animationEnabled:
-#             self.animateQuery2.emit(username)
         users = set()
         #for system
         for u, g in self.main.user_group_sys_mat.items():
@@ -277,8 +274,6 @@ class QueryWindow(QWidget):
         
     def runQuery3(self, username):
         output=''
-#         if self.animationEnabled:
-#             self.animateQuery3.emit(username)
         if username in self.main.user_group_sys_mat.keys():
             groups = self.main.user_group_sys_mat[username]
             if len(groups) == 1:
@@ -330,7 +325,7 @@ class QueryWindow(QWidget):
         groupNum = len(unode.groupNodes)
         groupList = list(unode.groupNodes)
         PermissionChecker.checkUserPermForFileViaUser(unode, self.scene, p)
-        for i in xrange(groupNum):
+        for i in range(groupNum):  # xrange → range for Python 3
             PermissionChecker.checkUserPermForFileViaGroup(groupList[i], self.scene, p)
         PermissionChecker.checkUserPermForFileViaOther(self.scene, p)
         obj = self.filterPermForFileNodes(p)
@@ -347,8 +342,6 @@ class QueryWindow(QWidget):
     
     def runQuery4(self, username, permtype):
         '''Which objects can user read/write/execute'''
-#         if self.animationEnabled:
-#             self.animateQuery4.emit(rolename)
         output = 'The result is shown in the directory tree on the right side of the canvas. \
                     Inaccessible objects are in red. More objects can be displayed by expanding existing objects.\n'
         self.main.ui.actionView_User.setChecked(True)
@@ -366,12 +359,8 @@ class QueryWindow(QWidget):
                    
     def runQuery5(self, name, permtype):
         '''Which objects can group read/write/execute'''
-#         if self.animationEnabled:
-#             self.animateQuery5.emit(rolename)
-#         self.main.filebrowser.hide()
         output = 'The result is shown in the directory tree on the right side of the canvas. \
                     Inaccessible objects are in red. More objects can be displayed by expanding existing objects.\n'
-#         output = self.queryGroupAccessObjWithPerm(name, permtype)
         self.main.ui.actionView_Group.setChecked(True)
         self.main.viewModeChanged(self.main.ui.actionView_Group)
         self.main.selectGroupNode(self.main.groupComboBox.findText(name))
@@ -396,13 +385,13 @@ class QueryWindow(QWidget):
         objList = []
         objname = objname.replace(self.main.root_dir, '')
         temp = objname.split('/')
-        temp = filter(lambda a: a != '', temp)
+        temp = [item for item in temp if item != '']  # filter → list comprehension for Python 3
         for t in temp:
             objList.append('/'+t)
         for u in self.main.scene.userNodeList:
             username = u.name
             filepath = ''
-            for i in xrange(len(objList)):
+            for i in range(len(objList)):  # xrange → range for Python 3
                 filepath += objList[i]
                 if i==len(objList)-1:
                     info = self.main.objectViewScene.computePermForGrid(username, filepath, False, p)
@@ -418,8 +407,6 @@ class QueryWindow(QWidget):
         
     def runQuery6(self, objname, permtype):
         '''Which users can read/write/execute the specified object''' 
-#         if self.animationEnabled:
-#             self.animateQuery6.emit(rolename, rolename2)
         '''Check the format and existence of the object'''
         self.main.ui.actionView_Object.setChecked(True)
         self.main.viewModeChanged(self.main.ui.actionView_Object)
@@ -448,7 +435,7 @@ class QueryWindow(QWidget):
         objList = []
         objname = objname.replace(self.main.root_dir, '')
         temp = objname.split('/')
-        temp = filter(lambda a: a != '', temp)
+        temp = [item for item in temp if item != '']  # filter → list comprehension for Python 3
         for t in temp:
             objList.append('/'+t)
         for g in self.main.scene.groupNodeList:
@@ -460,7 +447,7 @@ class QueryWindow(QWidget):
                 if fileuser == u:
                     continue
                 filepath = ''
-                for i in xrange(len(objList)):
+                for i in range(len(objList)):  # xrange → range for Python 3
                     filepath += objList[i]
                     if i==len(objList)-1:
                         info = self.main.objectViewScene.computePermForGrid(u, filepath, False, p)
@@ -476,8 +463,6 @@ class QueryWindow(QWidget):
       
     def runQuery7(self, objname, permtype):
         '''Which groups can read/write/execute the specified object'''
-#         if self.animationEnabled:
-#             self.animateQuery7.emit(rolename, rolename2)
         '''Check the format and existence of the object'''
         self.main.ui.actionView_Object.setChecked(True)
         self.main.viewModeChanged(self.main.ui.actionView_Object)
@@ -499,7 +484,6 @@ class QueryWindow(QWidget):
         '''Which objects have setuid bit on'''
         self.main.ui.actionView_User.setChecked(True)
         self.main.viewModeChanged(self.main.ui.actionView_User)
-#         self.main.selectGroupNode(self.main.groupComboBox.findText(name))
         self.main.filebrowser.filterReadCheck.setChecked(False)
         self.main.filebrowser.filterWriteCheck.setChecked(False)
         self.main.filebrowser.filterExecuteCheck.setChecked(False)
@@ -570,7 +554,7 @@ class QueryWindow(QWidget):
             opath = o.getFullPath()
             if os.path.exists(opath):
                 stat_info = os.stat(opath)
-                if stat_info.st_mode & 01000 == 01000:
+                if stat_info.st_mode & 0o1000 == 0o1000:  # Updated octal syntax for Python 3
                     objs.append(o.name)
             else:
                 opath = re.sub(self.scene.main.root_dir, '', opath)
@@ -622,13 +606,6 @@ class QueryWindow(QWidget):
             objname = str(self.ui.lineEdit.text())
             paras = [permtype, objname]
             self.runQuery7(objname, permtype)
-#         paraString = " with parameters "+', ' .join(paras)
-#         if paras!= []:
-#             message = "Run Query "+str(queryId)+paraString+'\n'
-#             self.scene.main.writeToFile(self.scene.main.logFile, self.scene.main.getCurrentTimeString()+message)
-#         else:
-#             message = "Run Query "+str(queryId)+'\n'
-#             self.scene.main.writeToFile(self.scene.main.logFile, self.scene.main.getCurrentTimeString()+message)
         elif queryId == 8:
             paras = ['suid']
             self.runQuery8()
@@ -639,12 +616,11 @@ class QueryWindow(QWidget):
             paras = ['sticky']
             self.runQuery10()
            
-    def runQuery(self, paras):
-        if not self.main.access_root_dir:
-            QMessageBox.critical(self.main, 'Error', 'Please specify a root directory to start with!', QMessageBox.Ok)
-#         if paras==None:
-#             self.getQueryResultFromCommandLineInput(current, paras)
-#         else:
+    def runQuery(self, paras=None):
+        if not self.main.root_dir:  # Changed from access_root_dir to root_dir based on error message
+            QMessageBox.critical(self.main, 'Error', 'Please specify a root directory to start with!', QMessageBox.StandardButton.Ok)  # Updated enum
+            return
+            
         self.main.hideAllNodeItemsInScene(self.scene)
         self.prevText = self.queryResultTextEdit.toPlainText()
         self.prevCursor = self.prevText.count('\n')
@@ -652,51 +628,3 @@ class QueryWindow(QWidget):
         self.setOutputHighlight()
         current = self.ui.queryListWidget.currentRow()
         self.getQueryResult(current)
-        
-#     def getQueryResultFromCommandLineInput(self, queryId, paras):
-#         counter = 0
-#         if queryId == 0:
-#             rolename = paras[counter]
-#             counter+=1
-#             username =paras[counter]
-#             counter+=1
-#             objname = paras[counter]
-#             counter+=1
-#             self.runQuery0(rolename, username, objname)
-#         elif queryId == 1:
-#             rolename = paras[counter]
-#             counter+=1
-#             permtype = paras[counter]
-#             self.runQuery1(rolename, permtype)
-#         elif queryId == 2:
-#             username = paras[counter]
-#             self.runQuery2(username)
-#         elif queryId == 3:
-#             rolename = paras[counter]
-#             self.runQuery3(rolename)
-#         elif queryId == 4:
-#             rolename = paras[counter]
-#             self.runQuery4(rolename)
-#         elif queryId == 5:
-#             rolename = paras[counter]
-#             self.runQuery5(rolename)
-#         elif queryId == 6:
-#             rolename = paras[counter]
-#             counter +=1
-#             rolename2 = paras[counter]
-#             self.runQuery6(rolename, rolename2)
-#         elif queryId == 7:
-#             rolename = paras[counter]
-#             counter+=1
-#             rolename2 = paras[counter]
-#             self.runQuery7(rolename, rolename2)
-#         elif queryId == 8:
-#             rolename = paras[counter]
-#             counter +=1
-#             rolename2 = paras[counter]
-#             self.runQuery8(rolename, rolename2)
-#         elif queryId == 9:
-#             rolename = paras[counter]
-#             counter+=1
-#             objname = paras[counter]
-#             self.runQuery9(rolename, objname)

@@ -2,56 +2,50 @@
 
 # Form implementation generated from reading ui file 'query_widget.ui'
 #
-# Created: Mon Feb 27 21:37:40 2012
-#      by: PyQt4 UI code generator 4.9
+# Updated for PyQt6 compatibility
 #
-# WARNING! All changes made in this file will be lost!
 
-from PyQt4 import QtCore, QtGui
+from PyQt6 import QtCore, QtWidgets
 import re
 from UserNode import UserNode
 from EdgeItem import EdgeItem
 import MyFunctions
 
-try:
-    _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-    _fromUtf8 = lambda s: s
-
 class Ui_RootInputDialog(object):
 
     def setupUi(self, Dialog):
-        Dialog.setObjectName(_fromUtf8("Dialog"))
+        Dialog.setObjectName("Dialog")
         Dialog.resize(468, 100)
-        self.verticalLayoutWidget = QtGui.QWidget(Dialog)
+        self.verticalLayoutWidget = QtWidgets.QWidget(Dialog)
         self.verticalLayoutWidget.setGeometry(QtCore.QRect(10, 10, 450, 80))
-        self.verticalLayoutWidget.setObjectName(_fromUtf8("verticalLayoutWidget"))
-        self.verticalLayout = QtGui.QVBoxLayout(self.verticalLayoutWidget)
-        self.verticalLayout.setMargin(0)
-        self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
-        self.label = QtGui.QLabel(self.verticalLayoutWidget)
-        self.label.setObjectName(_fromUtf8("label"))
-        self.lineEdit = QtGui.QLineEdit(self.verticalLayoutWidget)
-        self.lineEdit.setObjectName(_fromUtf8("lineEdit"))
+        self.verticalLayoutWidget.setObjectName("verticalLayoutWidget")
+        self.verticalLayout = QtWidgets.QVBoxLayout(self.verticalLayoutWidget)
+        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
+        self.verticalLayout.setObjectName("verticalLayout")
+        self.label = QtWidgets.QLabel(self.verticalLayoutWidget)
+        self.label.setObjectName("label")
+        self.lineEdit = QtWidgets.QLineEdit(self.verticalLayoutWidget)
+        self.lineEdit.setObjectName("lineEdit")
         self.verticalLayout.addWidget(self.label)
         self.verticalLayout.addWidget(self.lineEdit)
-        self.horizontalLayout = QtGui.QHBoxLayout()
-        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
-        self.OKPushButton = QtGui.QPushButton(self.verticalLayoutWidget)
-        self.OKPushButton.setObjectName(_fromUtf8("OKPushButton"))
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.OKPushButton = QtWidgets.QPushButton(self.verticalLayoutWidget)
+        self.OKPushButton.setObjectName("OKPushButton")
         self.horizontalLayout.addWidget(self.OKPushButton)
-        self.cancelPushButton = QtGui.QPushButton(self.verticalLayoutWidget)
-        self.cancelPushButton.setObjectName(_fromUtf8("cancelPushButton"))
+        self.cancelPushButton = QtWidgets.QPushButton(self.verticalLayoutWidget)
+        self.cancelPushButton.setObjectName("cancelPushButton")
         self.horizontalLayout.addWidget(self.cancelPushButton)
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
     def retranslateUi(self, Dialog):
-        Dialog.setWindowTitle(QtGui.QApplication.translate("Dialog", "Edit Root Directory", None, QtGui.QApplication.UnicodeUTF8))
-        self.label.setText(QtGui.QApplication.translate("Dialog", "Root Directory", None, QtGui.QApplication.UnicodeUTF8))
-        self.OKPushButton.setText(QtGui.QApplication.translate("Dialog", "OK", None, QtGui.QApplication.UnicodeUTF8))
-        self.cancelPushButton.setText(QtGui.QApplication.translate("Dialog", "Cancel", None, QtGui.QApplication.UnicodeUTF8))
+        _translate = QtCore.QCoreApplication.translate
+        Dialog.setWindowTitle(_translate("Dialog", "Edit Root Directory"))
+        self.label.setText(_translate("Dialog", "Root Directory"))
+        self.OKPushButton.setText(_translate("Dialog", "OK"))
+        self.cancelPushButton.setText(_translate("Dialog", "Cancel"))
     
 class Ui_ToolBox(object):
     NUM_GROUPBOX = 3
@@ -67,18 +61,18 @@ class Ui_ToolBox(object):
             'S_IWGRP', 'S_IXGRP', 'S_IRWXO', 'S_IROTH', 'S_IWOTH', 'S_IXOTH']
     
     def setupUi(self, Form, main):
-        Form.setObjectName(_fromUtf8("Form"))
+        Form.setObjectName("Form")
         Form.resize(214, 618)
         Form.setAutoFillBackground(True)
         self.tabId = 0
         self.main = main
-        self.gridWidget = QtGui.QWidget()
-        grid = QtGui.QGridLayout(self.gridWidget)
+        self.gridWidget = QtWidgets.QWidget()
+        grid = QtWidgets.QGridLayout(self.gridWidget)
         grid.setVerticalSpacing(3)
         grid.addWidget(self.createProgramTraceViewExclusiveGroup(), 1, 0)
         gb = self.createSyscallListGroupBox()
         grid.addWidget(gb, 2, 0)
-        grid.addItem(QtGui.QSpacerItem(0,300, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding), 3, 0)
+        grid.addItem(QtWidgets.QSpacerItem(0,300, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding), 3, 0)
         
     def isNameEmpty(self, name):
         p = re.compile('^(\s)*$')
@@ -94,31 +88,31 @@ class Ui_ToolBox(object):
             return False
              
     def createProgramTraceViewExclusiveGroup(self):
-        self.programTraceGroupBox = QtGui.QGroupBox('Program Trace View')
-        vbox = QtGui.QVBoxLayout(self.programTraceGroupBox)
+        self.programTraceGroupBox = QtWidgets.QGroupBox('Program Trace View')
+        vbox = QtWidgets.QVBoxLayout(self.programTraceGroupBox)
         self.importProgramFileInterface(vbox)
         self.programTraceGroupBox.setEnabled(True)
         return self.programTraceGroupBox
     
     def createLineSeparator(self, parent):
-        line = QtGui.QFrame(parent)
-        line.setFrameShape(QtGui.QFrame.HLine)
-        line.setFrameShadow(QtGui.QFrame.Sunken)
+        line = QtWidgets.QFrame(parent)
+        line.setFrameShape(QtWidgets.QFrame.Shape.HLine)
+        line.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
         return line
     
     def importProgramFileInterface(self, vbox):
-        widget = QtGui.QWidget(self.programTraceGroupBox)
-        loadinCodeLabel = QtGui.QLabel('Import Program File:')
-        hbox = QtGui.QHBoxLayout(widget)
+        widget = QtWidgets.QWidget(self.programTraceGroupBox)
+        loadinCodeLabel = QtWidgets.QLabel('Import Program File:')
+        hbox = QtWidgets.QHBoxLayout(widget)
         hbox.invalidate()
-        self.strCodePath = QtGui.QLineEdit()
-        self.btnLoadCode = QtGui.QPushButton('...')
-        self.btnLoadCode.setSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Preferred)
-#         self.btnConfirmCode = QtGui.QPushButton('Import')
-        self.btnConfirmCode = QtGui.QPushButton('Run')
+        self.strCodePath = QtWidgets.QLineEdit()
+        self.btnLoadCode = QtWidgets.QPushButton('...')
+        self.btnLoadCode.setSizePolicy(QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Preferred)
+#         self.btnConfirmCode = QtWidgets.QPushButton('Import')
+        self.btnConfirmCode = QtWidgets.QPushButton('Run')
         hbox.addWidget(self.strCodePath)
         hbox.addWidget(self.btnLoadCode)
-        hbox.setMargin(0)
+        hbox.setContentsMargins(0, 0, 0, 0)
         vbox.addWidget(loadinCodeLabel)
         vbox.addWidget(widget)
         vbox.addWidget(self.btnConfirmCode)
@@ -128,29 +122,26 @@ class Ui_ToolBox(object):
         execalls = ['execvp', 'execv', 'execvpe', 'execlp', 'execl']
         ugidcalls = ['setuid', 'setgid', 'seteuid', 'setegid', 'setreuid', 'setregid']
 
-        allGroupBox = QtGui.QGroupBox('Visualization Supported System Calls')
-        allVbox = QtGui.QVBoxLayout()
-        groupBox1 = QtGui.QGroupBox(allGroupBox)
-        vbox1 = QtGui.QVBoxLayout(groupBox1)
+        allGroupBox = QtWidgets.QGroupBox('Visualization Supported System Calls')
+        allVbox = QtWidgets.QVBoxLayout()
+        groupBox1 = QtWidgets.QGroupBox(allGroupBox)
+        vbox1 = QtWidgets.QVBoxLayout(groupBox1)
         for i in syscalls:
-            label = QtGui.QLabel(i)
+            label = QtWidgets.QLabel(i)
             vbox1.addWidget(label)
-        groupBox2 = QtGui.QGroupBox()
-        vbox2 = QtGui.QVBoxLayout(groupBox2)
+        groupBox2 = QtWidgets.QGroupBox()
+        vbox2 = QtWidgets.QVBoxLayout(groupBox2)
         for i in execalls:
-            label = QtGui.QLabel(i)
+            label = QtWidgets.QLabel(i)
             vbox2.addWidget(label)
-        groupBox3 = QtGui.QGroupBox()
-        vbox3 = QtGui.QVBoxLayout(groupBox3)
+        groupBox3 = QtWidgets.QGroupBox()
+        vbox3 = QtWidgets.QVBoxLayout(groupBox3)
         for i in ugidcalls:
-            label = QtGui.QLabel(i)
+            label = QtWidgets.QLabel(i)
             vbox3.addWidget(label)
         allVbox.addWidget(groupBox1)
         allVbox.addWidget(groupBox2)
         allVbox.addWidget(groupBox3)
-        allVbox.setMargin(0)
+        allVbox.setContentsMargins(0, 0, 0, 0)
         allGroupBox.setLayout(allVbox)
         return allGroupBox
-
-
-            

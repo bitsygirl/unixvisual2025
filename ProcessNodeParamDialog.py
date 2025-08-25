@@ -2,22 +2,23 @@
 Created on Sep 3, 2015
 
 @author: manwang
+Updated for PyQt6 compatibility
 '''
-from PyQt4.QtGui import QDialog, QStandardItem, QTableWidgetItem
-from PyQt4.QtCore import Qt, QString
+from PyQt6.QtWidgets import QDialog, QTableWidgetItem
+from PyQt6.QtCore import Qt
 from Ui_ProcessNodeParamDialog import Ui_ProcessNodeParamDialog
 import PermissionChecker
 
 class ProcessNodeParamDialog(QDialog):
 
     def __init__(self, main, scene):
-        QDialog.__init__(self)
+        super().__init__()
         self.main = main
         self.scene = scene
         self.ui = Ui_ProcessNodeParamDialog()
         self.ui.setupUi(self)
         self.setLayout(self.ui.verticalLayout)
-        flags = Qt.Dialog | Qt.WindowStaysOnTopHint
+        flags = Qt.WindowType.Dialog | Qt.WindowType.WindowStaysOnTopHint
         self.setWindowFlags(flags)
         self.ui.closePushButton.clicked.connect(self.close)
     
@@ -89,7 +90,7 @@ class ProcessNodeParamDialog(QDialog):
         paramnamelist = self.setupParamValueList(procname, paramvaluelist)
         self.ui.browser.clearContents()
         self.ui.browser.setItem(0, 0, QTableWidgetItem(paramnamelist[0]))
-        for i in xrange(len(paramvaluelist)):
+        for i in range(len(paramvaluelist)):  # xrange → range for Python 3
             self.ui.browser.setItem(i+1, 0, QTableWidgetItem(paramnamelist[i+1]))
             self.ui.browser.setItem(i+1, 1, QTableWidgetItem(paramvaluelist[i]))
         if procname == 'open':

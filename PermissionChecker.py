@@ -2,6 +2,7 @@
 Created on Jun 22, 2015
 
 @author: manwang
+Updated for Python 3 compatibility
 '''
 import pwd, grp, os
 from stat import *
@@ -9,7 +10,7 @@ import MyFunctions
 from collections import namedtuple
 from UserNode import *
 from GroupNode import GroupNode
-from PyQt4.QtGui import QMessageBox
+from PyQt6.QtWidgets import QMessageBox
 
 Permission = namedtuple('Permission', ('category', 'permList'))
 
@@ -24,24 +25,6 @@ def getFileUserAndGroup(path, fnode, scene):
     creds = scene.main.obj_cred_mat
     if path:
         if os.path.exists(path):
-#             import subprocess
-#             output = subprocess.Popen(['ls', '-l', path],stdout=subprocess.PIPE).communicate()[0]
-#             output = output.split()
-#             print path, output
-#             if output:
-#                 if output[0] == 'total':
-#                     uindex = 4
-#                 else:
-#                     uindex = 2
-#                 user = output[uindex]
-#                 group = output[uindex+1]
-#                 uid = pwd.getpwnam(user).pw_uid
-#                 gid = pwd.getpwnam(user).pw_gid
-# #                 print user, group
-# #                 print pwd.getpwnam(user).pw_uid
-# #                 print pwd.getpwnam(user).pw_gid
-# #                 print  uid, gid
-#             else:
             try:
                 stat_info = os.stat(path)
             except Exception as e:
@@ -85,7 +68,7 @@ def getPermissionbitForFile(filepath, fnode, scene):
             st = os.stat(filepath)
         except Exception as e:
             return "%05o" % int(oct(0), 8)
-        return "%05o" % int(oct(st.st_mode&07777), 8)
+        return "%05o" % int(oct(st.st_mode&0o7777), 8)
     else:
         filename = ''
         if filepath[-1] == '/' and filepath != '/':
@@ -131,11 +114,11 @@ def convertRWXToOct(permset):
 
 def convertOctToRWX(perm, bits, setid = False, stkbit = False):
     permList = []
-    if bool(perm&0b100):
+    if bool(perm&0o100):
         permList.append('r')
-    if bool(perm&0b10):
+    if bool(perm&0o010):
         permList.append('w')
-    if bool(perm&0b001):
+    if bool(perm&0o001):
         if setid:
             permList.append('s')
         elif bits=='other' and stkbit:
@@ -151,15 +134,15 @@ def convertOctToRWX(perm, bits, setid = False, stkbit = False):
 
 def convertOctToRWXString(perm, setid = False, otherbit = False, stkbit = False):
     perms = ''
-    if bool(perm&0b100):
+    if bool(perm&0o100):
         perms+='r'
     else:
         perms+='-'
-    if bool(perm&0b010):
+    if bool(perm&0o010):
         perms+='w'
     else:
         perms+='-'
-    if bool(perm&0b001):
+    if bool(perm&0o001):
         if setid:
             perms+='s'
         else:
@@ -190,7 +173,7 @@ def convertNineBitsOctToRWX(perm):
 def checkParentDirectoriesForUserNode(filepath, fnode, unode, scene):
     dirlist = filepath.split('/')
     dirs = [x for x in dirlist if x != '']
-    for i in xrange(len(dirs)-1):
+    for i in range(len(dirs)-1):
         path = '/'
         path += '/'.join(dirs[:i+1])
         perm = checkUserPermForFile(path, fnode, unode, scene)
@@ -202,7 +185,7 @@ def checkParentDirectoriesForGroupNode(filepath, gnode, scene):
     import re
     dirlist = filepath.split('/')
     dirs = [x for x in dirlist if x != '']
-    for i in xrange(len(dirs)-1):
+    for i in range(len(dirs)-1):
         path = '/'
         path += '/'.join(dirs[:i+1])
         path = re.sub('/+', '/', path)
@@ -213,14 +196,14 @@ def checkParentDirectoriesForGroupNode(filepath, gnode, scene):
         perms = int(perms, 8)
         groupnode = MyFunctions.getNodeFromListByName(filegroup, scene.groupNodeList)
         if gnode== groupnode:
-            p = (perms&0070)>>3
+            p = (perms&0o070)>>3
             if p>0:
                 perm = convertOctToRWX(p, 'group', perms & S_ISGID)
                 if 'x' not in perm and 's' not in perm:
                     return 0
                 else:
                     return 1
-        p = perms&0007
+        p = perms&0o007
         perm = convertOctToRWX(p, 'other', False, perms & S_ISVTX)
         if 'x' not in perm and 't' not in perm:
             return 0
@@ -232,10 +215,10 @@ def checkUserPermForOneFileViaGroup(gnode, d, fhighlight, scene, permset = set([
     if d.permset == set():
         filepath = d.getFullPath()
         if scene.main.focusNode in scene.userNodeList:
-            if not checkParentDirectoriesForUserNode(filepath, d, scene.main.focusNode, scene):#checkParentDirectoriesForGroupNode(filepath, gnode, scene):
+            if not checkParentDirectoriesForUserNode(filepath, d, scene.main.focusNode, scene):
                 return result
         elif scene.main.focusNode in scene.groupNodeList:
-            if not checkParentDirectoriesForGroupNode(filepath, scene.main.focusNode, scene):#checkParentDirectoriesForGroupNode(filepath, gnode, scene):
+            if not checkParentDirectoriesForGroupNode(filepath, scene.main.focusNode, scene):
                 return result
         fileuser, filegroup, uid, gid = getFileUserAndGroup(filepath, d, scene)
         if fileuser == None and uid == -1:
@@ -245,7 +228,7 @@ def checkUserPermForOneFileViaGroup(gnode, d, fhighlight, scene, permset = set([
         groupnode = MyFunctions.getNodeFromListByName(filegroup, scene.groupNodeList)
         if gnode!= groupnode:
             return result
-        p = (perms&0070)>>3
+        p = (perms&0o070)>>3
         if fhighlight:
             if p>0 and d.accessible==-1:
                 d.accessible = 1
@@ -265,10 +248,10 @@ def checkUserPermForOneFileViaUser(unode, d, fhighlight, scene, permset = set(['
     result = [0, 0]
     filepath = d.getFullPath()
     if scene.main.focusNode in scene.userNodeList:
-        if not checkParentDirectoriesForUserNode(filepath, d, scene.main.focusNode, scene):#checkParentDirectoriesForGroupNode(filepath, gnode, scene):
+        if not checkParentDirectoriesForUserNode(filepath, d, scene.main.focusNode, scene):
             return result
     elif scene.main.focusNode in scene.groupNodeList:
-        if not checkParentDirectoriesForGroupNode(filepath, scene.main.focusNode, scene):#checkParentDirectoriesForGroupNode(filepath, gnode, scene):
+        if not checkParentDirectoriesForGroupNode(filepath, scene.main.focusNode, scene):
             return result
     fileuser, filegroup, uid, gid = getFileUserAndGroup(filepath, d, scene)
     if fileuser == None and uid == -1:
@@ -276,7 +259,7 @@ def checkUserPermForOneFileViaUser(unode, d, fhighlight, scene, permset = set(['
     perms = getPermissionbitForFile(filepath, d, scene)
     perms = int(perms, 8)
     if unode.name == fileuser:
-        p = (perms&0700)>>6
+        p = (perms&0o700)>>6
         if fhighlight:
             if p>0: 
                 d.accessible = 0
@@ -297,14 +280,14 @@ def checkUserPermForOneFileViaOther(d, fhighlight, scene, permset = set(['r', 'w
     if d.permset == set():
         filepath = d.getFullPath()
         if scene.main.focusNode in scene.userNodeList:
-            if not checkParentDirectoriesForUserNode(filepath, d, scene.main.focusNode, scene):#checkParentDirectoriesForGroupNode(filepath, gnode, scene):
+            if not checkParentDirectoriesForUserNode(filepath, d, scene.main.focusNode, scene):
                 return result
         elif scene.main.focusNode in scene.groupNodeList:
-            if not checkParentDirectoriesForGroupNode(filepath, scene.main.focusNode, scene):#checkParentDirectoriesForGroupNode(filepath, gnode, scene):
+            if not checkParentDirectoriesForGroupNode(filepath, scene.main.focusNode, scene):
                 return result
         perms = getPermissionbitForFile(filepath, d, scene)
         perms = int(perms, 8)
-        p = perms&0007
+        p = perms&0o007
         if fhighlight:
             if p>0 and d.accessible==-1:
                 d.accessible = 2
@@ -319,13 +302,12 @@ def checkUserPermForOneFileViaOther(d, fhighlight, scene, permset = set(['r', 'w
 def checkParentDirectoriesForOther(filepath, scene):
     dirlist = filepath.split('/')
     dirs = [x for x in dirlist if x != '']
-    for i in xrange(len(dirs)-1):
+    for i in range(len(dirs)-1):
         path = '/'
         path += '/'.join(dirs[:i+1])
         perms = getPermissionbitForFile(path, None, scene)
         perms = int(perms, 8)
-        #p = (perms&0070)>>3
-        p = perms&0007
+        p = perms&0o007
         perm = convertOctToRWX(p, 'other', False, perms & S_ISVTX)
         if 'x' not in perm and 's' not in perm and 't' not in perm:
             return 0
@@ -344,12 +326,12 @@ def checkUserPermForFile(filepath, fnode, usernode, scene):
     groupnode = MyFunctions.getNodeFromListByName(filegroup, scene.groupNodeList)
     permission = makePermission()
     if usernode.name == fileuser:
-        p = (perms&0700)>>6
+        p = (perms&0o700)>>6
         permission = makePermission('user', convertOctToRWX(p, 'user', perms & S_ISUID))
     elif usernode.isMemberOfGroup(groupnode):
-        p = (perms&0070)>>3
+        p = (perms&0o070)>>3
         permission = makePermission('group', convertOctToRWX(p, 'group', perms & S_ISGID))
     else:
-        p = perms&0007
+        p = perms&0o007
         permission = makePermission('other', convertOctToRWX(p, 'other', False, perms & S_ISVTX))
     return permission

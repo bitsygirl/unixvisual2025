@@ -2,6 +2,7 @@
 Created on Aug 10, 2015
 
 @author: carr
+Updated for Python 3 compatibility
 '''
 from pyparsing import *
 from utils import *
@@ -74,19 +75,19 @@ def printthing(x, depth=1):
             for e in x:
                 printthing(e, depth+1)
         else:
-            print '{0}{1}'.format(' ' * 4 * depth, x)
+            print('{0}{1}'.format(' ' * 4 * depth, x))
     else:
-        print '{0}{1}'.format(' ' * 4 * depth, x)
+        print('{0}{1}'.format(' ' * 4 * depth, x))
 
 if __name__ == '__main__':
     import sys
     with open(sys.argv[1], 'r') as f:
         text = f.read()
-    print text
+    print(text)
     result = unixparse(text)
     for i, stmt in enumerate(result):
-        print i, stmt[0]
+        print(i, stmt[0])
         rest = stmt[1:]
         for thing in rest:
             printthing(thing)
-    print result
+    print(result)

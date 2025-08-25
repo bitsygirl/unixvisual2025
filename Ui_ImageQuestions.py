@@ -1,4 +1,17 @@
 '''
+
+# PyQt4/PyQt6 Compatibility Shim
+try:
+    from PyQt6.QtCore import Qt, QObject, QPointF, QRectF, QLineF, pyqtSignal, QTimer, QRect
+    from PyQt6.QtWidgets import *
+    from PyQt6.QtGui import QPen, QBrush, QColor, QFont, QPainter, QPixmap, QIcon, QTransform
+    USING_PYQT6 = True
+except ImportError:
+    from PyQt4.QtCore import Qt, QObject, QPointF, QRectF, QLineF, pyqtSignal, QTimer, QRect
+    from PyQt4.QtGui import *
+    USING_PYQT6 = False
+
+
 Accessible Access Control 1.0
 2012-2104 Michigan Technological University
 Supported in part by NSF grants: DUE-1140512, DUE-1245310 and IIS-1319363
@@ -14,7 +27,6 @@ Advisors:Dr. Steve Carr, Dr. Jean Mayo, Dr. Ching-Kuang Shene and Dr. Chaoli Wan
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt4 import QtCore, QtGui
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8

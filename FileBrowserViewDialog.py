@@ -2,9 +2,11 @@
 Created on Sep 12, 2015
 
 @author: manwang
+Updated for PyQt6 compatibility
 '''
-from PyQt4.QtGui import *
-from PyQt4.QtCore import Qt, QString, QObject, QStringList
+from PyQt6.QtWidgets import *
+from PyQt6.QtCore import Qt, QObject
+from PyQt6.QtGui import QStandardItemModel, QStandardItem, QBrush
 from collections import namedtuple
 from UserNode import UserNode
 from GroupNode import GroupNode
@@ -26,11 +28,11 @@ class FileBrowserViewDialog(QWidget):
     AND_RELATION = 1001
     
     def __init__(self, parent, main):
-        QWidget.__init__(self, parent)
+        super().__init__(parent)
         self.main = main
         self.wlayout = QVBoxLayout(self)
-        self.wlayout.setMargin(0)
-        self.vsplitter = QSplitter(Qt.Horizontal)
+        self.wlayout.setContentsMargins(0, 0, 0, 0)
+        self.vsplitter = QSplitter(Qt.Orientation.Horizontal)
         
         self.filterw = QWidget()
         scrollarea = QScrollArea()
@@ -41,11 +43,11 @@ class FileBrowserViewDialog(QWidget):
         self.listv = QListView()
         self.viewlayout = QVBoxLayout(self.filterw)
 
-        self.viewlayout.setMargin(0)
+        self.viewlayout.setContentsMargins(0, 0, 0, 0)
         self.settingBox = QGroupBox("Settings")
         self.settingBox.setAutoFillBackground(True)
         vLayout = QVBoxLayout(self.settingBox)
-        vLayout.setMargin(0)
+        vLayout.setContentsMargins(0, 0, 0, 0)
         self.logicW = QWidget()
         self.logicRadioHLayout = QHBoxLayout(self.logicW)
         self.logicRelationLabel = QLabel("Relation:")
@@ -80,7 +82,7 @@ class FileBrowserViewDialog(QWidget):
         
         groupboxFile = QGroupBox("Permissions for Regular File")
         groupboxVlayout = QVBoxLayout(groupboxFile)
-        groupboxVlayout.setMargin(0)
+        groupboxVlayout.setContentsMargins(0, 0, 0, 0)
         readDirLabel = QLabel("Read: View the content of a file.")
         readDirLabel.setWordWrap(True)
         writeDirLabel = QLabel("Write: Allow changes to the content of a file.")
@@ -93,7 +95,7 @@ class FileBrowserViewDialog(QWidget):
         
         groupbox = QGroupBox("Permissions for Directory")
         groupboxVlayout = QVBoxLayout(groupbox)
-        groupboxVlayout.setMargin(0)
+        groupboxVlayout.setContentsMargins(0, 0, 0, 0)
         readDirLabel = QLabel("Read: List the content of the directory.")
         readDirLabel.setWordWrap(True)
         writeDirLabel = QLabel("Write: Allow adding/removing objects under the directory.")
@@ -137,8 +139,8 @@ class FileBrowserViewDialog(QWidget):
         self.treev.expanded.connect(lambda index: self.generatePermHighlight(index))
         self.treev.clicked.connect(lambda index: self.showPermSelected(index))
         self.updateBtn.clicked.connect(self.updateTreeView)
-        self.tablev.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.tablev.horizontalHeader().setResizeMode(QHeaderView.Stretch)
+        self.tablev.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.tablev.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.mode = self.NORMAL_MD
         self.user = None
         self.group = None
@@ -157,8 +159,8 @@ class FileBrowserViewDialog(QWidget):
         
     def createLineSeparator(self, parent):
         line = QFrame(parent)
-        line.setFrameShape(QFrame.HLine)
-        line.setFrameShadow(QFrame.Sunken)
+        line.setFrameShape(QFrame.Shape.HLine)
+        line.setFrameShadow(QFrame.Shadow.Sunken)
         return line
     
     def updateTreeView(self):
@@ -197,15 +199,14 @@ class FileBrowserViewDialog(QWidget):
             item = index.model().itemFromIndex(index)
             success, msg = self.computePermForItem(item, self.action, self.user, self.group, True, False)
     #         if parentSuccess == False:
-    #             item.setForeground(QBrush(Qt.red))
+    #             item.setForeground(QBrush(Qt.GlobalColor.red))
             self.message += '<font color=\"Blue\" size="4">1. %s:</font> %s<br />'%(str(item.text()), msg)
         self.tablev.clearContents()
         self.tablev.setRowCount(len(pathlist))
         self.tablev.setColumnCount(2)
-        headers = QStringList()
-        headers << "Directory" << "Permissions"
+        headers = ["Directory", "Permissions"]
         self.tablev.setHorizontalHeaderLabels(headers)
-        for r in xrange(len(pathlist)):
+        for r in range(len(pathlist)):
             newItem = QTableWidgetItem(pathlist[r])
             self.tablev.setItem(r, 0, newItem)
             newItem = QTableWidgetItem(pathperms[r])
@@ -273,7 +274,7 @@ class FileBrowserViewDialog(QWidget):
         firstitem = self.addItem(dirlist[0], None)
         self.model.setItem(0, 0, firstitem)
         
-        for i in xrange(1, len(dirlist)):
+        for i in range(1, len(dirlist)):
             item = self.addItem(dirlist[i], firstitem)
             self.newLevel.append(item)
 #         for i in filelist:
@@ -359,7 +360,7 @@ class FileBrowserViewDialog(QWidget):
 #                     d.children.append(c)
             if name != startname:
                 self.addItem(d, item)
-        for i in xrange(item.rowCount()):
+        for i in range(item.rowCount()):
             item.child(i).removeRows(0, item.child(i).rowCount())
             dirlist, filelist = self.list_files(startname+str(item.child(i).text()))
             dirSpeclist = self.generateHierlistOneStep(startname+str(item.child(i).text()))
@@ -375,7 +376,7 @@ class FileBrowserViewDialog(QWidget):
 #                         d.children.append(c)
                 if name != startname+str(item.child(i).text()):
                     self.addItem(d, item.child(i))
-        for i in xrange(item.rowCount()):
+        for i in range(item.rowCount()):
             c = item.child(i)
             self.traverseAllItemInTreeView(c, self.action, self.treev.model(), self.user, self.group)
                
@@ -399,9 +400,9 @@ class FileBrowserViewDialog(QWidget):
         item = index.model().itemFromIndex(index)
         self.computePermForItem(item, action, username, groupname)
         if parentSuccess == False:
-            item.setForeground(QBrush(Qt.red))
+            item.setForeground(QBrush(Qt.GlobalColor.red))
         if model.hasChildren(index) and self.treev.isExpanded(index):
-            for i in xrange(item.rowCount()):
+            for i in range(item.rowCount()):
                 c = item.child(i)
                 self.traverseAllItemInTreeView(c, action, model)
                     
@@ -489,7 +490,7 @@ class FileBrowserViewDialog(QWidget):
                             msg+=('<font color=\"Black\" size="4">%s%s</font><br>')\
                                 %(self.bitsToUseMsg('user', permsu), self.fileMsg(success, settingperm, 'user', permsu))
                     else:
-                        item.setForeground(QBrush(Qt.black))
+                        item.setForeground(QBrush(Qt.GlobalColor.black))
                 else:
                     if msgOn:
                         success = False
@@ -500,7 +501,7 @@ class FileBrowserViewDialog(QWidget):
                             msg+=('<font color=\"Red\" size="4">%s%s</font><br>')\
                                 %(self.bitsToUseMsg('user', permsu), self.fileMsg(success, settingperm, 'user', permsu))
                     else:
-                        item.setForeground(QBrush(Qt.red))
+                        item.setForeground(QBrush(Qt.GlobalColor.red))
             
             elif node and (gnode in node.groupNodes):
                 if self.hasPerm(action, permsg, permso, 'group'):
@@ -513,7 +514,7 @@ class FileBrowserViewDialog(QWidget):
                             msg+=('<font color=\"Black\" size="4">%s%s</font><br>')\
                                 %(self.bitsToUseMsg('group', permsg), self.fileMsg(success, settingperm, 'group', permsg))
                     else:
-                        item.setForeground(QBrush(Qt.black))
+                        item.setForeground(QBrush(Qt.GlobalColor.black))
                 else:
                     if msgOn:
                         success = False
@@ -524,7 +525,7 @@ class FileBrowserViewDialog(QWidget):
                             msg+=('<font color=\"Red\" size="4">%s%s</font><br>')\
                                 %(self.bitsToUseMsg('group', permsg), self.fileMsg(success, settingperm, 'group', permsg))
                     else:
-                        item.setForeground(QBrush(Qt.red))
+                        item.setForeground(QBrush(Qt.GlobalColor.red))
             else:
                 if self.hasPerm(action, permso, permso, 'other'):
                     if msgOn: 
@@ -536,7 +537,7 @@ class FileBrowserViewDialog(QWidget):
                             msg+=('<font color=\"Black\" size="4">%s%s</font><br>')\
                                 %(self.bitsToUseMsg('other', permso), self.fileMsg(success, settingperm, 'other', permso))
                     else:
-                        item.setForeground(QBrush(Qt.black))
+                        item.setForeground(QBrush(Qt.GlobalColor.black))
                 else:
                     if msgOn:
                         success = False
@@ -547,7 +548,7 @@ class FileBrowserViewDialog(QWidget):
                             msg += ('<font color=\"Red\" size="4">%s%s</font><br>')\
                                 %(self.bitsToUseMsg('other', permso), self.fileMsg(success, settingperm, 'other', permso))
                     else:
-                        item.setForeground(QBrush(Qt.red))
+                        item.setForeground(QBrush(Qt.GlobalColor.red))
         elif self.mode == self.GROUP_MD:
             if filegroup == groupname:
                 if self.hasPerm(action, permsg, permso, 'group'):
@@ -560,7 +561,7 @@ class FileBrowserViewDialog(QWidget):
                             msg+=('<font color=\"Black\" size="4">%s%s</font><br>')\
                                 %(self.bitsToUseMsg('group', permsg), self.fileMsg(success, settingperm, 'group', permsg))
                     else:
-                        item.setForeground(QBrush(Qt.black))
+                        item.setForeground(QBrush(Qt.GlobalColor.black))
                 else:
                     if msgOn:
                         success = False
@@ -571,7 +572,7 @@ class FileBrowserViewDialog(QWidget):
                             msg+=('<font color=\"Red\" size="4">%s%s</font><br>')\
                                 %(self.bitsToUseMsg('group', permsg), self.fileMsg(success, settingperm, 'group', permsg))
                     else:
-                        item.setForeground(QBrush(Qt.red))
+                        item.setForeground(QBrush(Qt.GlobalColor.red))
             else:
                 if msgOn:
                     success = False
@@ -582,11 +583,11 @@ class FileBrowserViewDialog(QWidget):
                     else:
                         msg+='<font color=\"Red\" size="4">The group is not the group of the object so there is no access to the object.<\font><br>'
                 else:
-                    item.setForeground(QBrush(Qt.red))
+                    item.setForeground(QBrush(Qt.GlobalColor.red))
         return success, msg
     
     def addItem(self, diritem, prevStandItem):
-        item = QStandardItem(QString(diritem.name))
+        item = QStandardItem(diritem.name)
         item.setEditable(False)
         if diritem.parent:
             filepath = diritem.parent+ diritem.name
@@ -598,8 +599,8 @@ class FileBrowserViewDialog(QWidget):
         perms = PermissionChecker.getPermissionbitForFile(filepath, None, self.main.scene)
         permletters = PermissionChecker.convertNineBitsOctToRWX(perms)
         temp = 'User:'+str(uid)+'('+fileuser +')\nGroup:' + str(gid)+'('+filegroup+')\nPermission bits:\n'+perms+'('+permletters+')'
-        item.setAccessibleDescription(QString(temp))
-        item.setAccessibleText(QString(fileuser+':'+filegroup+':'+permletters))
+        item.setAccessibleDescription(temp)
+        item.setAccessibleText(fileuser+':'+filegroup+':'+permletters)
         if prevStandItem: 
             prevStandItem.appendRow(item)
         return item

@@ -2,11 +2,14 @@
 Created on Mar 17, 2016
 
 @author: manwang
+Updated for PyQt6 compatibility
 '''
-from PyQt4.QtGui import QFont, QGraphicsTextItem, QMessageBox, QSizePolicy, \
-                        QComboBox, QPushButton, QLineEdit, QGraphicsProxyWidget, QLabel, QRadioButton,\
-                        QButtonGroup, QFrame, QWidget, QVBoxLayout, QScrollArea, QLayout, QFontMetrics
-from PyQt4.QtCore import QPointF, QRect, QPoint, QRectF, QString, Qt
+from PyQt6.QtGui import QFont, QPainter
+from PyQt6.QtWidgets import (QGraphicsTextItem, QMessageBox, QSizePolicy, 
+                             QComboBox, QPushButton, QLineEdit, QGraphicsProxyWidget, 
+                             QLabel, QRadioButton, QButtonGroup, QFrame, QWidget, 
+                             QVBoxLayout, QScrollArea, QLayout)
+from PyQt6.QtCore import QPointF, QRect, QPoint, QRectF, Qt
 from FileNode import FileNode
 from EdgeItem import EdgeItem
 from ObjectViewNodes import FilePermNode, CheckNode, TitleNode
@@ -29,6 +32,7 @@ class ObjectViewScene(object):
     INITIALPATH = ''#untitled folder/cod'
     msgDefault = ''#Click on a "user:permission" tuple in the last row for detailed analysis.'
     ANIMA_STOP_STEP = 1024
+    
     def __init__(self, main):
         self.main = main
         self.scene = main.scene
@@ -200,18 +204,21 @@ class ObjectViewScene(object):
     
     def addUser2ComboBox(self):
         self.objectViewuserComboBox.clear()
-#         self.objectViewuserComboBox.addItem(self.ALLUSERTEXT)
         for u in self.main.userSysList:
-            self.objectViewuserComboBox.addItem(u)
+            # Fixed: Handle bytes conversion
+            user_str = u.decode('utf-8') if isinstance(u, bytes) else str(u)
+            self.objectViewuserComboBox.addItem(user_str)
         for u in self.main.userSpecList:
-            self.objectViewuserComboBox.addItem(u)
+            # Fixed: Handle bytes conversion
+            user_str = u.decode('utf-8') if isinstance(u, bytes) else str(u)
+            self.objectViewuserComboBox.addItem(user_str)
         
     def addGroup2ComboBox(self, groups):
         self.objectViewGroupComboBox.clear()
-#         if str(self.objectViewuserComboBox.currentText()) == self.ALLUSERTEXT:
-#             self.objectViewGroupComboBox.addItem(self.ALLGROUPTEXT)
         for g in groups:
-            self.objectViewGroupComboBox.addItem(g)
+            # Fixed: Handle bytes conversion
+            group_str = g.decode('utf-8') if isinstance(g, bytes) else str(g)
+            self.objectViewGroupComboBox.addItem(group_str)
             
     def resetUserAndGroupInComboBox(self):
         index = self.objectViewuserComboBox.findText(self.getRealUsrName())
@@ -330,31 +337,31 @@ class ObjectViewScene(object):
             ratio = 0.25
             
             self.labelViewmode.setPos(startX, startY)
-            self.viewmodeCombobox.setGeometry(QRect(startX+self.labelViewmode.boundingRect().width(), startY, \
+            self.viewmodeCombobox.setGeometry(QRect(int(startX+self.labelViewmode.boundingRect().width()), int(startY), 
                                             self.viewmodeCombobox.geometry().width(), self.viewmodeCombobox.geometry().height()))
             startY += self.labelViewmode.boundingRect().height()
             self.labelRoot.setPos(startX, startY-ratio*self.lineEditRoot.geometry().height())
-            self.lineEditRoot.setGeometry(QRect(startX+xinter, startY,\
+            self.lineEditRoot.setGeometry(QRect(int(startX+xinter), int(startY),
                                                self.lineEditRoot.geometry().width(), self.lineEditRoot.geometry().height()))
             startY+=self.labelRoot.boundingRect().height()
             self.labelObj.setPos(startX, startY-ratio*self.lineEditRoot.geometry().height())
-            self.lineEditObj.setGeometry(QRect(startX+xinter, startY,\
+            self.lineEditObj.setGeometry(QRect(int(startX+xinter), int(startY),
                                                self.lineEditObj.geometry().width(), self.lineEditObj.geometry().height()))
-            self.btnload.setGeometry(QRect(self.lineEditObj.geometry().x()+self.lineEditObj.geometry().width()+5, startY,\
+            self.btnload.setGeometry(QRect(int(self.lineEditObj.geometry().x()+self.lineEditObj.geometry().width()+5), int(startY),
                                        self.btnload.geometry().width(), self.lineEditObj.geometry().height()))
-            self.btnupdate.setGeometry(QRect(self.btnload.geometry().x()+self.btnload.geometry().width()+5, startY,\
+            self.btnupdate.setGeometry(QRect(int(self.btnload.geometry().x()+self.btnload.geometry().width()+5), int(startY),
                                        self.btnupdate.geometry().width(), self.btnload.geometry().height()))
             startY += self.labelObj.boundingRect().height()
             self.labelUser.setPos(startX, startY-ratio*self.objectViewuserComboBox.geometry().height())
-            self.objectViewuserComboBox.setGeometry(QRect(startX+xinter, startY,\
+            self.objectViewuserComboBox.setGeometry(QRect(int(startX+xinter), int(startY),
                             self.objectViewuserComboBox.geometry().width(), self.objectViewuserComboBox.geometry().height()))
-            self.labelGroup.setPos(self.objectViewuserComboBox.pos().x()+\
-                                   self.objectViewuserComboBox.geometry().width(),\
-                                   startY-ratio*self.objectViewGroupComboBox.geometry().height())
-            self.objectViewGroupComboBox.setGeometry(QRect(self.labelGroup.pos().x()+\
-                            self.labelGroup.boundingRect().width(),\
-                            startY,\
-                            self.objectViewGroupComboBox.geometry().width(),\
+            self.labelGroup.setPos(int(self.objectViewuserComboBox.pos().x()+
+                                   self.objectViewuserComboBox.geometry().width()),
+                                   int(startY-ratio*self.objectViewGroupComboBox.geometry().height()))
+            self.objectViewGroupComboBox.setGeometry(QRect(int(self.labelGroup.pos().x()+
+                            self.labelGroup.boundingRect().width()),
+                            int(startY),
+                            self.objectViewGroupComboBox.geometry().width(),
                             self.objectViewGroupComboBox.geometry().height()))
     
     def selectViewMode(self, index):
@@ -418,16 +425,19 @@ class ObjectViewScene(object):
         if self.main.user_group_sys_mat:
             if username in self.main.user_group_sys_mat.keys():
                 import subprocess
-#                 groups = self.main.user_group_sys_mat[username]
-                groups = subprocess.Popen(["groups", username], 
+                # Fixed: Handle subprocess output which returns bytes in Python 3
+                groups_output = subprocess.Popen(["groups", username], 
                           stdout=subprocess.PIPE).communicate()[0]
-                groups = groups.split()
+                # Decode bytes to string and split
+                groups_str = groups_output.decode('utf-8') if isinstance(groups_output, bytes) else str(groups_output)
+                groups = groups_str.split()
         elif self.main.user_group_mat:
             if username in self.main.user_group_mat.keys():
                 groups = self.main.user_group_mat[username]
         elif username == self.ALLUSERTEXT:
                 groups = set(self.main.groupSysList) | set(self.main.groupSpecList)
-        txt= ','.join(groups)
+        # Fixed: Handle bytes conversion in join
+        txt = ','.join(g.decode('utf-8') if isinstance(g, bytes) else str(g) for g in groups)
         return txt, groups
     
     def setGroupForUserComboBox(self, index):
@@ -476,7 +486,7 @@ class ObjectViewScene(object):
                 gperms = perms[3:6]
                 operms = perms[6:]
                 usedBits = self.bitsIndexList[self.nodeIndex].index
-                for i in xrange(3):
+                for i in range(3):
                     if i == 0:
                         self.main.explainTextEdit.appendPlainText('- Check user bits:')
                         if 's' in uperms or 'S' in uperms:
@@ -514,7 +524,7 @@ class ObjectViewScene(object):
             self.checkedAnswer = False
                
     def detailExplainQues(self):
-        for i in xrange(len(self.bitsIndexList)):
+        for i in range(len(self.bitsIndexList)):
             node = self.bitsIndexList[i]
             dirnode = self.dirNodes[i]
             permnode = dirnode.permInfo
@@ -553,8 +563,8 @@ class ObjectViewScene(object):
     
     def generateQuesKeys(self):
         numQues = 2*len(self.dirNodes)
-        for i in xrange(numQues):
-            nodeIndex = i/2
+        for i in range(numQues):
+            nodeIndex = i//2
             if i % 2 == 0:
                 '''The number representing the applied bits is stored as the keys, it is the index of radio buttons as well'''
                 if nodeIndex < len(self.bitsIndexList):
@@ -599,7 +609,7 @@ class ObjectViewScene(object):
             
     def createQuestionText(self, qID):
         user = str(self.objectViewuserComboBox.currentText())
-        object = self.dirNodes[qID/2].dirpath
+        object = self.dirNodes[qID//2].dirpath
         if qID % 2 == 0:
             qText = 'Question %s. Which bits are applied for the access of the user "%s" to the highlighted object?'%(qID+1, user)
         else:
@@ -608,7 +618,7 @@ class ObjectViewScene(object):
             if self.isFileCheck(object):
                 operationText = self.PRACTICE_QUES_PERM_OPERATIONS[0][operation]
             else:
-                if qID/2 != len(self.dirNodes)-1:
+                if qID//2 != len(self.dirNodes)-1:
                     operation = 2
                 self.practicePermCheckKeys.append(operation)
                 operationText = self.PRACTICE_QUES_PERM_OPERATIONS[1][operation]
@@ -628,9 +638,8 @@ class ObjectViewScene(object):
             numButtons = 3
         else:
             numButtons = 2
-        for i in xrange(numButtons):
+        for i in range(numButtons):
             btn = QRadioButton(self.PRACTICE_QUES_CHOICES[qType][i])
-#             btn.setStyleSheet("background-color: white")
             wlayout.addWidget(btn)
             buttonGroup.addButton(btn)
             buttons.append(btn)
@@ -641,8 +650,8 @@ class ObjectViewScene(object):
         answerLabel.setObjectName('check')
         wlayout.addWidget(answerLabel)
         line = QFrame()
-        line.setFrameShape(QFrame.HLine)
-        line.setFrameShadow(QFrame.Sunken)
+        line.setFrameShape(QFrame.Shape.HLine)
+        line.setFrameShadow(QFrame.Shadow.Sunken)
         wlayout.addWidget(line)
         question.setLayout(wlayout)
         question.adjustSize()
@@ -662,7 +671,7 @@ class ObjectViewScene(object):
         self.practiceQuesScroll.setWidget(self.practiceQuesWidget)
         self.practiceQuesScroll.setWidgetResizable(True)
         self.practiceQuesLayout = QVBoxLayout(self.practiceQuesWidget)
-        for i in xrange(len(self.dirNodes)):
+        for i in range(len(self.dirNodes)):
             self.practiceQuestionWidgets.append(self.createQuestionText(2*i))
             self.practiceQuestionWidgets.append(self.createQuestionText(2*i+1))
         self.practiceQuesLayout.addStretch(1)
@@ -680,7 +689,6 @@ class ObjectViewScene(object):
             label.setText('')
         
     def resetAnimatedItems(self):
-#         if not self.bitsIndexList:
         username = str(self.objectViewuserComboBox.currentText())
         groupname = str(self.objectViewGroupComboBox.currentText())
         groups = set([groupname])
@@ -724,7 +732,7 @@ class ObjectViewScene(object):
         for e in self.practiceQuestionWidgets:
             e.hide()
         self.practiceQuestionWidgets[0].show()
-        for i in xrange(self.main.animationStep):
+        for i in range(self.main.animationStep):
             self.practiceQuestionWidgets[i+1].show()
         self.practiceQuesWidget.adjustSize()
         self.practiceQuesScroll.ensureVisible(0,self.practiceQuesWidget.geometry().height(),0,0)
@@ -733,8 +741,8 @@ class ObjectViewScene(object):
         self.checkedAnswer = False
         for i in self.dirNodes:
             i.highlight = False
-        self.dirNodes[self.main.animationStep/2].highlight = True
-        for i in xrange(len(self.bitsIndexList)):
+        self.dirNodes[self.main.animationStep//2].highlight = True
+        for i in range(len(self.bitsIndexList)):
             dirnode = self.dirNodes[i]
             permnode = dirnode.permInfo
             self.bitsIndexList[i].setVisible(False)
@@ -749,7 +757,7 @@ class ObjectViewScene(object):
         elif self.main.animationStep == 1:
             numLevel = len(self.dirNodes)
             self.main.explainTextEdit.appendPlainText('In this case, we check the following directories:')
-            for i in xrange(numLevel-1):
+            for i in range(numLevel-1):
                 self.main.explainTextEdit.appendPlainText(self.dirNodes[i].dirpath) 
             self.main.explainTextEdit.appendPlainText('')
             self.sec = 0
@@ -980,7 +988,7 @@ class ObjectViewScene(object):
         if permstr == 'None':
             indexStart = 0
             indexStep = 4
-        for i in xrange(len(permset)):
+        for i in range(len(permset)):
             if i<len(permset)-1:
                 permsHtml += ('<font color=\"%s\" size="3">%s</font><br>')%(colorstr, permset[i])
             else:
@@ -1004,7 +1012,7 @@ class ObjectViewScene(object):
         if permstr == 'None':
             indexStart = 0
             indexStep = 4
-        for i in xrange(len(permset)):
+        for i in range(len(permset)):
             if i<len(permset)-1:
                 if (i==0 and section==0) or (i==1 and section==1):
                     permsHtml += ('<font color=\"Blue\" size="3"><b>%s</b></font><br>')%permset[i]
@@ -1046,11 +1054,11 @@ class ObjectViewScene(object):
         objpath = objpath.replace('\n', '')
         objpath = objpath[len(self.main.root_dir):]
         temp = objpath.split('/')
-        temp = filter(lambda a: a != '', temp)
+        temp = [item for item in temp if item != '']
         for t in temp:
             self.objList.append('/'+t)
         dirpath = ''
-        for i in xrange(len(self.objList)):
+        for i in range(len(self.objList)):
             dirpath += self.objList[i]
             dirpath=re.sub('/+', '/', dirpath)
             node = FileNode(dirpath, self.objList[i], False, self.main)
@@ -1074,8 +1082,6 @@ class ObjectViewScene(object):
         '''generate information in grids'''
         self.resetAnimatedItems()
         self.createPracticeModeInterface()
-#         self.reanalyze(str(self.objectViewuserComboBox.currentText()), set(str(self.objectViewGroupComboBox.currentText())))
-#         self.getPermForAllGrid()
     
     def getPermForAllGrid(self):
         allgroup = True
@@ -1085,9 +1091,9 @@ class ObjectViewScene(object):
             usersInGroup = list(self.getUsersInGroup(currentGroup))
             allgroup = False
         dirpath = ''
-        for i in xrange(len(self.objList)):
+        for i in range(len(self.objList)):
             dirpath += self.objList[i]
-        for j in xrange(3):
+        for j in range(3):
             sectionList = []
             userList = []
             users = set()
@@ -1148,7 +1154,7 @@ class ObjectViewScene(object):
         filepath = ''
         userList = []
         quitFlag = False
-        for i in xrange(len(self.dirNodes)):
+        for i in range(len(self.dirNodes)):
             filepath += self.dirNodes[i].name
             if i==len(self.dirNodes)-1:
                 info = self.computePermForGrid(username, filepath, False)
@@ -1184,10 +1190,10 @@ class ObjectViewScene(object):
                     if info == None:
                         return []
                     if info[0]:
-                        node = CheckNode(self.main, ('<font color=\"Black\" size="3">%s</font><br>')%info[1],\
-                                          '<font color=\"Green\" size="5">Y</font><br>')#%(u'\u2713'))
+                        node = CheckNode(self.main, ('<font color=\"Black\" size="3">%s</font><br>')%info[1],
+                                          '<font color=\"Green\" size="5">Y</font><br>')
                     else:
-                        node = CheckNode(self.main, ('<font color=\"Red\" size="3">%s</font><br>')%info[1], \
+                        node = CheckNode(self.main, ('<font color=\"Red\" size="3">%s</font><br>')%info[1], 
                                             '<font color=\"Red\" size="4">N</font><br>')
                         quitFlag = True
                 else:
@@ -1220,10 +1226,10 @@ class ObjectViewScene(object):
         self.msg.setPos(20, self.scene.sceneRect().height()-self.msg.boundingRect().height()-5)
         xinter = self.nextPBtn.geometry().width()
         yinter = self.nextPBtn.geometry().height()
-        self.nextPBtn.setGeometry(self.scene.sceneRect().width()-10-xinter, self.scene.sceneRect().height()-10-yinter, \
+        self.nextPBtn.setGeometry(int(self.scene.sceneRect().width()-10-xinter), int(self.scene.sceneRect().height()-10-yinter), 
                                              xinter, yinter)
         xinter = self.nextPBtn.geometry().width()
-        self.detailPBtn.setGeometry(self.nextPBtn.pos().x()-xinter-10, self.nextPBtn.pos().y(), \
+        self.detailPBtn.setGeometry(int(self.nextPBtn.pos().x()-xinter-10), int(self.nextPBtn.pos().y()), 
                                       self.nextPBtn.geometry().width(), self.detailPBtn.geometry().height())
         self.msg.setTextWidth(self.detailPBtn.geometry().x())
         self.msg.setPos(20, self.main.scene.sceneRect().height()-self.msg.boundingRect().height()-5)
@@ -1236,38 +1242,31 @@ class ObjectViewScene(object):
             
             intervalY = 0.7/len(self.dirNodes)
             x, y = 0.15, float(startY)/self.scene.sceneRect().height()+0.1#0.2
-            for i in xrange(len(self.dirNodes)):
+            for i in range(len(self.dirNodes)):
                 self.dirNodes[i].relativeX = x
                 self.dirNodes[i].relativeY = y
                 self.dirNodes[i].setPos(QPointF(x*self.scene.sceneRect().width(),y*self.scene.sceneRect().height()))
                 self.dirNodes[i].setVisible(True)
                 y += intervalY
                 
-#             if self.nodeIndex == 0:
-#                 row = 0
-#             else:
-#                 row = self.nodeIndex -1
-#             for c in xrange(len(self.practiceChoices)):
-#                     btn = self.practiceChoices[c]
-#                     btn.move(self.textItems[c].pos().x()+5, self.dirNodes[row].pos().y())
-            for j in xrange(3): 
+            for j in range(3):
                 prevk = None
                 if self.checkgridNodes[j]!=[]:
                     for k in self.checkgridNodes[j]:#k - userList, self.checkgridNodes[j] - sectionList
                         if k:
-                            for i in xrange(len(self.dirNodes)): #k[i] - dir
+                            for i in range(len(self.dirNodes)):
                                 if i < len(k):
                                     k[i].relativeX = self.textItems[k[i].index].pos().x()/self.scene.sceneRect().width()
                                     k[i].relativeY = self.dirNodes[i].relativeY
-                                    k[i].setPos(QPointF(k[i].relativeX*self.scene.sceneRect().width()\
+                                    k[i].setPos(QPointF(k[i].relativeX*self.scene.sceneRect().width()
                                                                       ,k[i].relativeY*self.scene.sceneRect().height()))
-                                    k[i].analysisDialog.move(pos.x()+k[i].pos().x()+100, pos.y()+k[i].pos().y())
+                                    k[i].analysisDialog.move(int(pos.x()+k[i].pos().x()+100), int(pos.y()+k[i].pos().y()))
                             k[-1].relativeX = (self.textItems[k[-1].index].pos().x()-75)/self.scene.sceneRect().width()
                             if not prevk:
                                 k[-1].relativeY = self.dirNodes[i].relativeY
                             else:
                                 k[-1].relativeY = prevk[-1].relativeY+(prevk[-1].boundingRect().height()-5)/self.scene.sceneRect().height()
-                            k[-1].setPos(QPointF(k[-1].relativeX*self.scene.sceneRect().width()\
+                            k[-1].setPos(QPointF(k[-1].relativeX*self.scene.sceneRect().width()
                                                 ,k[-1].relativeY*self.scene.sceneRect().height()))
                             prevk = k
                         
@@ -1300,7 +1299,7 @@ class ObjectViewScene(object):
                 i.setVisible(flag)
             for i in self.checkgridNodes:
                 for j in i:
-                    for k in xrange(len(j)):
+                    for k in range(len(j)):
                         if k < len(j)-1:
                             j[k].setVisible(False)
                             j[k].analysisDialog.setVisible(False)

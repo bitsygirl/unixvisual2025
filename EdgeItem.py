@@ -3,6 +3,7 @@ Accessible Access Control 1.0
 2012-2104 Michigan Technological University
 Supported in part by NSF grants: DUE-1140512, DUE-1245310 and IIS-1319363
 Developer: Yifei Li
+Updated for PyQt6 compatibility
 Advisors:Dr. Steve Carr, Dr. Jean Mayo, Dr. Ching-Kuang Shene and Dr. Chaoli Wang
 '''
 '''
@@ -11,9 +12,11 @@ Created on Dec 20, 2011
 @author: yifli
 '''
 
-from PyQt4.QtGui import QGraphicsLineItem, QMessageBox, QPen, QBrush, QInputDialog, QGraphicsItem, \
-                        QPolygonF, QPainter, QPainterPath, QColor, QFontMetricsF, QFontMetrics, QTransform
-from PyQt4.QtCore import Qt,QLineF, QPointF, QRectF, QPropertyAnimation, pyqtProperty, QBasicTimer, QObject
+from PyQt6.QtWidgets import (QGraphicsLineItem, QMessageBox, QInputDialog, 
+                             QGraphicsItem)
+from PyQt6.QtGui import (QPen, QBrush, QPolygonF, QPainter, QPainterPath, 
+                         QColor, QFontMetricsF, QTransform)
+from PyQt6.QtCore import Qt, QLineF, QPointF, QRectF, QPropertyAnimation, pyqtProperty, QBasicTimer, QObject
 import MyFunctions
 import math, time
 import PermissionChecker
@@ -21,13 +24,10 @@ from ProcessNode import ProcessNode
 
 class EdgeObjectType(QObject):
     def __init__(self, edgeItem):
-        QObject.__init__(self)
+        super().__init__()
         self.edgeItem = edgeItem
         self.startItem = edgeItem.startItem
         self.endItem = edgeItem.endItem
-#         self.animation = QPropertyAnimation(self, "endPoint")
-#         self.animation.setDuration(1000)
-#         self.animation.finished.connect(self.edgeItem.animationFinished)
         
     @pyqtProperty(QPointF)
     def endPoint(self):
@@ -54,12 +54,12 @@ class EdgeItem(QGraphicsLineItem):
     EDGE_WIDTH = 2
     
     def __init__(self, linetype, start, end, main):
-        QGraphicsLineItem.__init__(self)
+        super().__init__()
         self.main = main
         self.scene = main.scene
         self.selectionOffset = 20
         self.arrowSize = 20
-        self.setFlag(QGraphicsItem.ItemIsSelectable)
+        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
         self.type = linetype
         self.startItem = start
         self.endItem = end
@@ -82,13 +82,15 @@ class EdgeItem(QGraphicsLineItem):
                     self.scene.groupFileConnToShowID = 0
                     self.scene.hint = 'Group'
                 self.setLine(QLineF(self.startItem.pos(), self.endItem.pos()))
-                self.eObjType.animation.setStartValue(self.startItem.pos())
-                self.eObjType.animation.setEndValue(self.endItem.pos())
-                self.eObjType.animation.start()
+                # Note: Animation functionality would need QPropertyAnimation setup
+                # self.eObjType.animation.setStartValue(self.startItem.pos())
+                # self.eObjType.animation.setEndValue(self.endItem.pos())
+                # self.eObjType.animation.start()
     
     def stopAnimation(self):
         if self.eObjType:
-            self.eObjType.animation.stop()
+            # self.eObjType.animation.stop()
+            pass
         
     def animationFinished(self):
         if self.type == self.USERGRP_CONN and self.scene.groupFileConnToShowID == 0:
@@ -127,14 +129,12 @@ class EdgeItem(QGraphicsLineItem):
             dx, dy = halfoffset, halfoffset 
         offset1 = QPointF(dx, dy)
         offset2 = QPointF(-dx, -dy)
-        nPolygon = QPolygonF([self.line().p1() + offset1, self.line().p1() + offset2, \
+        nPolygon = QPolygonF([self.line().p1() + offset1, self.line().p1() + offset2,
                              self.line().p2() + offset2, self.line().p2() + offset1])
         self.selectionPolygon = nPolygon
         self.update()
 
     def shape(self):  
-#         if self.type == self.FILE_CONN:
-#             isFileConn = True
         c1, c2 = MyFunctions.computeControlPointForBezierCurve(self.startItem, self.endItem, self.type == self.FILE_CONN)
         myPath = QPainterPath()
         myPath.moveTo(self.startItem.pos())
@@ -147,10 +147,10 @@ class EdgeItem(QGraphicsLineItem):
          
         if not self.startItem.isVisible() or not self.endItem.isVisible():
             return 
-        painter.setRenderHint(QPainter.HighQualityAntialiasing)
-        pen = QPen(Qt.SolidLine)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        pen = QPen(Qt.PenStyle.SolidLine)
         pen.setWidth(2.0)
-        pen.setColor(Qt.lightGray)
+        pen.setColor(Qt.GlobalColor.lightGray)
         painter.setPen(pen)
         if self.main.ui.actionView_Object.isChecked():
             self.setLine(QLineF(self.startItem.pos(), self.endItem.pos()))
@@ -160,5 +160,4 @@ class EdgeItem(QGraphicsLineItem):
 
     def updatePosition(self):
         line = QLineF(self.mapFromItem(self.startItem, QPointF(0, 0)), self.mapFromItem(self.endItem, QPointF(0, 0)))
-        self.setLine(line)        
-        
+        self.setLine(line)

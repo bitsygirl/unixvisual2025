@@ -2,10 +2,11 @@
 Created on Jul 21, 2015
 
 @author: manwang
+Updated for Python 3 and PyQt6 compatibility
 '''
 import socket, os, errno
 import re
-from PyQt4.QtGui import QMessageBox
+from PyQt6.QtWidgets import QMessageBox
 
 class SystemCallSocket(object):
 
@@ -25,7 +26,7 @@ class SystemCallSocket(object):
         
         self.sock.bind(serverAddress)
         serverAddress = self.sock.getsockname()
-        print 'starting up on %s port %s'%serverAddress
+        print('starting up on %s port %s' % serverAddress)
         portbuf = str(serverAddress[1])
         '''listen for incoming connections'''
         self.sock.listen(1)
@@ -37,7 +38,7 @@ class SystemCallSocket(object):
         (output, err) = process.communicate()
         self.scene.codeOutputDlg.hide()
         if output:
-            self.scene.codeOutputDlg.ui.textEdit_Output.setPlainText(output)
+            self.scene.codeOutputDlg.ui.textEdit_Output.setPlainText(output.decode('utf-8'))
             self.scene.codeOutputDlg.show()
         childPid = os.fork()
         if childPid == 0:
@@ -48,36 +49,38 @@ class SystemCallSocket(object):
         '''open socket for communication'''
         '''this is done by accepting a connection from another process'''
         connection, clientAddress = self.sock.accept()
-        print 'Connection address:', clientAddress
+        print('Connection address:', clientAddress)
         self.recvData = ''
-        prev = ''
+        prev = b''
         while 1:
             try:
                 data = connection.recv(BUFFER_SIZE)
-            except socket.error as (code, msg):
+            except socket.error as e:
+                code = e.errno if hasattr(e, 'errno') else e.args[0]
                 if code != errno.EINTR:
                     raise
-            if not data: break
-            if prev.find('Status')!=-1 and data==prev:
+            if not data: 
+                break
+            if prev.find(b'Status')!=-1 and data==prev:
                 prev = data
             else:
-                self.recvData+=data
+                self.recvData += data.decode('utf-8')
                 prev = data
         connection.close()
-        print "received data:", self.recvData
+        print("received data:", self.recvData)
         temp = self.recvData.replace(' ', '')
         if re.match(r'^(Initialpid:[0-9]+(\n)*)+$', temp):
-            QMessageBox.warning(self.main.syscallViewScene.codeDisplayDlg, 'Program Trace', 'The input program does not use any system call included by the visualization system\nNo visualization is generated!', QMessageBox.Ok)
+            QMessageBox.warning(self.main.syscallViewScene.codeDisplayDlg, 'Program Trace', 
+                              'The input program does not use any system call included by the visualization system\nNo visualization is generated!', 
+                              QMessageBox.StandardButton.Ok)
             return -1
         self.scene.pass2visual(self.recvData)
 #         childStatus = 0
 #         tpid = os.waitpid(childPid, childStatus)
-#         print "parent process done waiting for the child process!"
+#         print("parent process done waiting for the child process!")
         '''
         Stop listening for connections.
         We could have closed this right after accept() since we only handle one connection.
         '''
         self.sock.close()
         return 0
-    
-    

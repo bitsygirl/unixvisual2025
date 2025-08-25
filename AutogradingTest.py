@@ -1,39 +1,43 @@
 '''
 Accessible Access Control 1.0
 2012-2104 Michigan Technological University
-Supported in part by NSF grants: DUE-1140512, DUE-1245310 and IIS-1319363
+Supported in part by NSF grants: DUE-1140512, DUE-1245310 and IIS-1363
 Developer: Man Wang
 Advisors:Dr. Steve Carr, Dr. Jean Mayo, Dr. Ching-Kuang Shene and Dr. Chaoli Wang
+Updated for PyQt6 compatibility
 '''
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+# PyQt6 imports
+from PyQt6.QtCore import Qt, QObject, QPointF, QRectF, QLineF, pyqtSignal, QTimer, QRect, QFileInfo
+from PyQt6.QtWidgets import *
+from PyQt6.QtGui import QPen, QBrush, QColor, QFont, QPainter, QPixmap, QIcon, QTransform
+
 from Ui_AutogradingTestDlg import *
 from Ui_TestQuestionLoad import *
 import smtplib, subprocess
 import os, getpass, socket, datetime
-import httplib, urllib
+import http.client, urllib.parse
 # from AnswerCrypto import AnswerCrypto
         
 class AutogradingImageQuestion(QDialog):
     def __init__(self):
-        QDialog.__init__(self)
+        super().__init__()
         self.ui = Ui_ImageQuestion()
         self.ui.setupUi(self)
-        flags = Qt.Dialog | Qt.WindowStaysOnTopHint
+        flags = Qt.WindowType.Dialog | Qt.WindowType.WindowStaysOnTopHint
         self.setWindowFlags(flags)
         
 # class AutogradingSubmssionDlg(QDialog):
 #     def __init__(self):
-#         QDialog.__init__(self)
+#         super().__init__()
 #         self.ui = Ui_submission()
 #         self.ui.setupUi(self)
-#         flags = Qt.Dialog | Qt.WindowStaysOnTopHint
+#         flags = Qt.WindowType.Dialog | Qt.WindowType.WindowStaysOnTopHint
 #         self.setWindowFlags(flags)
 
 class AutogradingQuestionLoadDlg(QDialog):
     def __init__(self, main):
-        QDialog.__init__(self)
+        super().__init__()
         self.ui = Ui_TestQuestionLoad()
         self.ui.setupUi(self)
         self.main = main
@@ -60,7 +64,7 @@ class AutogradingTest(QDialog):
     QUIZ_SHOWANSWER = 2
     
     def __init__(self, main):
-        QDialog.__init__(self)
+        super().__init__()
         self.MAX_CHOICE_NUM = 4
         self.QUES_TYPE = 0
         self.QUES_TEXT = self.QUES_TYPE+1
@@ -77,7 +81,7 @@ class AutogradingTest(QDialog):
         
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
-        flags = Qt.Dialog| Qt.WindowStaysOnTopHint
+        flags = Qt.WindowType.Dialog | Qt.WindowType.WindowStaysOnTopHint
         self.setWindowFlags(flags)
         self.ui.nextBtn.clicked.connect(self.nextQuestion)
         self.ui.radioButton_1.clicked.connect(self.enableNextBtn)
@@ -111,16 +115,18 @@ class AutogradingTest(QDialog):
         
     def loadInQuestions(self):
         self.initParam()
-        self.questionFile = QFileDialog.getOpenFileName(self.main, 'Import Quiz Question File', directory=self.QUIZ_DIR, filter='(*.qes);;All Files(*.*)')
+        self.questionFile, _ = QFileDialog.getOpenFileName(self.main, 'Import Quiz Question File', directory=self.QUIZ_DIR, filter='(*.qes);;All Files(*.*)')
         self.questionDlg.ui.lineEdit_Dir.setText(self.questionFile)
-        rect = QRect(0.3*self.main.geometry().width()+self.main.geometry().x(), 0.3*self.main.geometry().height()+self.main.geometry().y(), self.questionDlg.rect().width(), self.questionDlg.rect().height())
-        self.questionDlg.setWindowFlags(self.questionDlg.windowFlags()|Qt.WindowStaysOnTopHint)
+        rect = QRect(int(0.3*self.main.geometry().width()+self.main.geometry().x()), 
+                     int(0.3*self.main.geometry().height()+self.main.geometry().y()), 
+                     self.questionDlg.rect().width(), self.questionDlg.rect().height())
+        self.questionDlg.setWindowFlags(self.questionDlg.windowFlags()|Qt.WindowType.WindowStaysOnTopHint)
         self.questionDlg.setGeometry(rect)
         self.questionDlg.show()
         
 #     def fillInQuestionFilePath(self):
 #         self.questionFile = str(self.questionDlg.ui.lineEdit_Dir.text())
-#         print self.questionFile, self.questionDlg.ui.lineEdit_Dir.text()
+#         print(self.questionFile, self.questionDlg.ui.lineEdit_Dir.text())
         
     def toolbarAllItems(self, state):
         self.main.ui.actionNew.setEnabled(state)
@@ -170,7 +176,7 @@ class AutogradingTest(QDialog):
         self.close()
         self.imageQuestions.close()
         filename = QFileInfo(self.QUIZ_DIR).absoluteFilePath()
-        filename = filename.append('/answer.txt')
+        filename = filename + '/answer.txt'
         QMessageBox.warning(self.main, '', "The answers have been stored in "+str(filename)+\
                                 ".\nPlease send the file to the instructor!")
         self.main.newDiagram()
@@ -190,8 +196,9 @@ class AutogradingTest(QDialog):
         
     def closeEvent(self, evt):
         if self.questionId < self.totalQuesNum-1:
-            response = QMessageBox.warning(self, '', 'Are you sure to quit the quiz?', buttons=QMessageBox.Yes|QMessageBox.No)
-            if response == QMessageBox.Yes:
+            response = QMessageBox.warning(self, '', 'Are you sure to quit the quiz?', 
+                                         buttons=QMessageBox.StandardButton.Yes|QMessageBox.StandardButton.No)
+            if response == QMessageBox.StandardButton.Yes:
                 self.main.ui.actionTest.setChecked(False)
                 self.imageQuestions.close()
                 self.returnBackToNormalMode()
@@ -459,20 +466,20 @@ class AutogradingTest(QDialog):
 
     
     def showCorrectChoice(self):
-        params = urllib.urlencode({
+        params = urllib.parse.urlencode({
             'modeID' : str(self.quizMode),
             'questionID': str(self.questionId),
             'answerID': self.currentChoice
             })
         headers = {"Content-type": "application/x-www-form-urlencoded",
                    "Accept": "text/plain"}
-        conn = httplib.HTTPConnection("cs.mtu.edu:80")
+        conn = http.client.HTTPConnection("cs.mtu.edu:80")
         conn.request("POST", "/~manw/testphp/test.php", params, headers)
         response = conn.getresponse()
         data = response.read()
         conn.close()
         if self.quizMode == self.QUIZ_SHOWANSWER:
-            feedback = (data.replace('\n', '')).split(' ')
+            feedback = (data.decode('utf-8').replace('\n', '')).split(' ')
             if feedback[0] == 'Correct':
                 self.ui.correctAnsLabel.setStyleSheet("QLabel { color : green; }")
                 self.ui.correctAnsLabel.setText(feedback[0]+'!')
@@ -482,7 +489,7 @@ class AutogradingTest(QDialog):
                 self.ui.correctAnsLabel.setText(warningText)
             return None
         elif self.quizMode == self.QUIZ_TRYING:
-            feedback = (data.replace('\n', '')).split(' ')
+            feedback = (data.decode('utf-8').replace('\n', '')).split(' ')
             if feedback[0] == 'Correct':
                 self.ui.correctAnsLabel.setStyleSheet("QLabel { color : green; }")
                 self.ui.correctAnsLabel.setText(feedback[0]+'!')
@@ -490,7 +497,7 @@ class AutogradingTest(QDialog):
                 warningText = 'Please try again.'
                 self.ui.correctAnsLabel.setStyleSheet("QLabel { color : red; }")
                 self.ui.correctAnsLabel.setText(warningText)
-            return data.replace('\n', '')
+            return data.decode('utf-8').replace('\n', '')
         
     def emailGradeResult(self): 
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -514,7 +521,7 @@ class AutogradingTest(QDialog):
                 '\n'+ self.answers
             
             filename = QFileInfo(self.QUIZ_DIR).absoluteFilePath()
-            filename = filename.append('/answer.txt')
+            filename = filename + '/answer.txt'
             with open(filename, 'w') as f:
                 f.write(attachemntContent)
             f.close()
@@ -537,4 +544,4 @@ class AutogradingTest(QDialog):
 #                 #else:
 #                     #self.main.answerDecryption.encrypt_RSA(None, self.answers)
 #                     #QMessageBox.critical(self.main, '', "The answers have been stored in '"+str(filename)+"'.\nPlease send your answers to the instructor through email\nand install Thunderbird for later submissions!")
-#             
+#
