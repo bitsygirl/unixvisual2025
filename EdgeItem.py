@@ -149,7 +149,7 @@ class EdgeItem(QGraphicsLineItem):
             return 
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         pen = QPen(Qt.PenStyle.SolidLine)
-        pen.setWidth(2.0)
+        pen.setWidth(2)  # FIXED: Changed from 2.0 to 2 (PyQt6 requires int)
         pen.setColor(Qt.GlobalColor.lightGray)
         painter.setPen(pen)
         if self.main.ui.actionView_Object.isChecked():

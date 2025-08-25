@@ -2,7 +2,7 @@
 Created on May 10, 2016
 
 @author: manwang
-Updated for PyQt6 compatibility
+Updated for PyQt6 compatibility with font fixes
 '''
 from stat import *
 from PyQt6.QtCore import Qt, QObject, QPointF, QRectF, QLineF, pyqtSignal, QTimer, QRect
@@ -15,6 +15,17 @@ from Ui_AutogradingTestDlg import Ui_Dialog
 import MyFunctions
 import PermissionChecker
 import random
+
+def getPlatformFont(size):
+    """Get appropriate font for current platform"""
+    import platform
+    system = platform.system()
+    if system == "Darwin":  # macOS
+        return QFont('SF Pro Text', size)
+    elif system == "Linux":
+        return QFont('Liberation Sans', size)
+    else:  # Windows
+        return QFont('Segoe UI', size)
 
 class FileDialog(QFileDialog):
     def __init__(self, *args):
@@ -73,7 +84,7 @@ class SelfTestScene(QWidget):
         self.chosenAnswer = None
         self.questionType = self.PROCESS_QUES
         
-    def createGraphicsTextItem(self, scene, text, fontsize=20, isQuesItem = True):
+    def createGraphicsTextItem(self, scene, text, fontsize=16, isQuesItem = True):
         item = QGraphicsTextItem(text)
         MyFunctions.setFontForUI(item, fontsize)
         scene.addItem(item)
@@ -89,8 +100,10 @@ class SelfTestScene(QWidget):
         self.tableViewQuestionConf.setGeometry(0, 0, int(self.scene.sceneRect().width()), int(0.5*self.scene.sceneRect().height()))
         self.interfaceTableItems.add(self.tableViewQuestionConf)
 
-    def setCellText(self, table, r, c, text, font = QFont('Courier', 18), isBold = False):
+    def setCellText(self, table, r, c, text, font = None, isBold = False):
         item = QTableWidgetItem(text)
+        if font is None:
+            font = getPlatformFont(12)  # Default smaller font
         font.setBold(isBold)
         item.setFont(font)
         item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -109,6 +122,7 @@ class SelfTestScene(QWidget):
             lineEdit.completer().setCompletionMode(QCompleter.CompletionMode.PopupCompletion)
 
         button = QPushButton(btnText)
+        button.setFont(getPlatformFont(10))  # Smaller button font
         hlayout.addWidget(lineEdit)
         hlayout.addWidget(button)
         hlayout.setContentsMargins(0, 0, 0, 0)
@@ -123,35 +137,36 @@ class SelfTestScene(QWidget):
         self.tablePermissionViewQuestionConf.verticalHeader().setVisible(False)
         self.tablePermissionViewQuestionConf.horizontalHeader().setVisible(False)
 
-        item = self.setCellText(self.tablePermissionViewQuestionConf, 0, 1, 'Permission', QFont('Courier', 20))
+        item = self.setCellText(self.tablePermissionViewQuestionConf, 0, 1, 'Permission', getPlatformFont(14))
         item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
-        item = self.setCellText(self.tablePermissionViewQuestionConf, 0, 0, '', QFont('Courier', 20))
+        item = self.setCellText(self.tablePermissionViewQuestionConf, 0, 0, '', getPlatformFont(14))
         item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
-        item = self.setCellText(self.tablePermissionViewQuestionConf, 0, 2, '', QFont('Courier', 20))
+        item = self.setCellText(self.tablePermissionViewQuestionConf, 0, 2, '', getPlatformFont(14))
         item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
-        item = self.setCellText(self.tablePermissionViewQuestionConf, 1, 0, 'Octal Notation', QFont('Courier', 20))
+        item = self.setCellText(self.tablePermissionViewQuestionConf, 1, 0, 'Octal Notation', getPlatformFont(12))
         item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
         
         chosenPerm = self.generateRandomPermissionInOctal()
-        item = self.setCellText(self.tablePermissionViewQuestionConf, 1, 1, chosenPerm, QFont('Courier', 20))
+        item = self.setCellText(self.tablePermissionViewQuestionConf, 1, 1, chosenPerm, getPlatformFont(14))
         
         item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
-        item = self.setCellText(self.tablePermissionViewQuestionConf, 1, 2, '', QFont('Courier', 20))
+        item = self.setCellText(self.tablePermissionViewQuestionConf, 1, 2, '', getPlatformFont(14))
         item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
-        item = self.setCellText(self.tablePermissionViewQuestionConf, 2, 0, '', QFont('Courier', 20))
+        item = self.setCellText(self.tablePermissionViewQuestionConf, 2, 0, '', getPlatformFont(14))
         item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
         
         widget = QWidget()
         layout = QHBoxLayout(widget)
         self.updatePermBtn = QPushButton('Obtain a New Permission')
+        self.updatePermBtn.setFont(getPlatformFont(10))
         layout.addWidget(self.updatePermBtn)
         layout.setContentsMargins(0, 0, 0, 0)
         widget.setLayout(layout)
         self.tablePermissionViewQuestionConf.setCellWidget(2,1,widget)
         self.updatePermBtn.clicked.connect(self.generateChoicesForPermQues)
-        item = self.setCellText(self.tablePermissionViewQuestionConf, 2, 1, '', QFont('Courier', 20))
+        item = self.setCellText(self.tablePermissionViewQuestionConf, 2, 1, '', getPlatformFont(14))
         item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
-        item = self.setCellText(self.tablePermissionViewQuestionConf, 2, 2, '', QFont('Courier', 20))
+        item = self.setCellText(self.tablePermissionViewQuestionConf, 2, 2, '', getPlatformFont(14))
         item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
         self.setPermTableBackgroundColor()
         self.tablePermissionViewQuestionConf.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
@@ -164,20 +179,21 @@ class SelfTestScene(QWidget):
         self.tableViewQuestionConf.verticalHeader().setVisible(False)
         self.tableViewQuestionConf.horizontalHeader().setVisible(False)
  
-        item = self.setCellText(self.tableViewQuestionConf, 1, 0, 'Real UID', QFont('Courier', 20))
+        item = self.setCellText(self.tableViewQuestionConf, 1, 0, 'Real UID', getPlatformFont(12))
         item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
-        item = self.setCellText(self.tableViewQuestionConf, 2, 0, 'Real GID', QFont('Courier', 20))
+        item = self.setCellText(self.tableViewQuestionConf, 2, 0, 'Real GID', getPlatformFont(12))
         item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
-        item = self.setCellText(self.tableViewQuestionConf, 3, 0, 'Effective UID', QFont('Courier', 20))
+        item = self.setCellText(self.tableViewQuestionConf, 3, 0, 'Effective UID', getPlatformFont(11))
         item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
-        item = self.setCellText(self.tableViewQuestionConf, 4, 0, 'Effective GID', QFont('Courier', 20))
+        item = self.setCellText(self.tableViewQuestionConf, 4, 0, 'Effective GID', getPlatformFont(11))
         item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
         
         widget = QWidget()
         procLabel = QLabel('Process')
-        procLabel.setFont(QFont('Courier', 20))
+        procLabel.setFont(getPlatformFont(13))
         procLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.procAllRandomPBtn = QPushButton('Random All')
+        self.procAllRandomPBtn.setFont(getPlatformFont(10))
         hlayout = QHBoxLayout(widget)
         hlayout.addWidget(procLabel)
         hlayout.addWidget(self.procAllRandomPBtn)
@@ -198,7 +214,9 @@ class SelfTestScene(QWidget):
         self.objDirLineEdit.setEditable(True)
         self.objDirLineEdit.completer().setCompletionMode(QCompleter.CompletionMode.PopupCompletion)
         self.objDirLoadPBtn = QPushButton('...')
+        self.objDirLoadPBtn.setFont(getPlatformFont(10))
         self.objPermRefresh = QPushButton('Refresh')
+        self.objPermRefresh.setFont(getPlatformFont(10))
         glayout.addWidget(self.objDirLineEdit,0,0)
         glayout.addWidget(self.objDirLoadPBtn,0,1)
         glayout.addWidget(self.objPermRefresh,1,0,1,2)
@@ -215,21 +233,21 @@ class SelfTestScene(QWidget):
         self.settingPermLabel.setTextFormat(Qt.TextFormat.RichText)
         self.settingPermLabel.setWordWrap(True)
         self.settingPermLabel.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
-        self.settingPermLabel.setFont(QFont('Courier', 19))
+        self.settingPermLabel.setFont(getPlatformFont(12))  # Reduced from 19
         self.tableViewQuestionConf.setCellWidget(4,3,self.settingPermLabel)
         
-        item = self.setCellText(self.tableViewQuestionConf, 0, 3, 'Object', QFont('Courier', 20))
+        item = self.setCellText(self.tableViewQuestionConf, 0, 3, 'Object', getPlatformFont(13))
         item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
-        item = self.setCellText(self.tableViewQuestionConf, 0, 4, 'Permission(Letter)', QFont('Courier', 20))
+        item = self.setCellText(self.tableViewQuestionConf, 0, 4, 'Permission', getPlatformFont(11))  # Shortened text
         item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
          
-        item = self.setCellText(self.tableViewQuestionConf, 1, 2, 'Directory', QFont('Courier', 20))
+        item = self.setCellText(self.tableViewQuestionConf, 1, 2, 'Directory', getPlatformFont(12))
         item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
-        item = self.setCellText(self.tableViewQuestionConf, 2, 2, 'User Owner', QFont('Courier', 20))
+        item = self.setCellText(self.tableViewQuestionConf, 2, 2, 'User Owner', getPlatformFont(11))
         item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
-        item = self.setCellText(self.tableViewQuestionConf, 3, 2, 'Group Owner', QFont('Courier', 20))
+        item = self.setCellText(self.tableViewQuestionConf, 3, 2, 'Group Owner', getPlatformFont(10))
         item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
-        item = self.setCellText(self.tableViewQuestionConf, 4, 2, 'Permissions', QFont('Courier', 20))
+        item = self.setCellText(self.tableViewQuestionConf, 4, 2, 'Permissions', getPlatformFont(11))
         item.setFlags(item.flags() &~Qt.ItemFlag.ItemIsEditable)
         
         for c in range(self.tableViewQuestionConf.columnCount()):
@@ -279,7 +297,7 @@ class SelfTestScene(QWidget):
     
     def initQuestion(self):        
         self.labelQuestionText = QGraphicsTextItem(self.QUES_INFO[self.PROCESS_QUES][0])
-        MyFunctions.setFontForUI(self.labelQuestionText, 25)
+        MyFunctions.setFontForUI(self.labelQuestionText, 18)  # Reduced from 25
         if self.labelQuestionText not in self.scene.items():
             self.scene.addItem(self.labelQuestionText)
             self.interfaceQuesItems.add(self.labelQuestionText)
@@ -291,16 +309,16 @@ class SelfTestScene(QWidget):
             answerLayout.setContentsMargins(0, 0, 0, 0)
             self.answerRadioBtn1 = QRadioButton('Yes')
             self.answerRadioBtn1.setStyleSheet("background-color: white")
-            MyFunctions.setFontForUI(self.answerRadioBtn1, 25)
+            MyFunctions.setFontForUI(self.answerRadioBtn1, 16)  # Reduced from 25
             self.answerRadioBtn2 = QRadioButton('No')
             self.answerRadioBtn2.setStyleSheet("background-color: white")
-            MyFunctions.setFontForUI(self.answerRadioBtn2, 25)
+            MyFunctions.setFontForUI(self.answerRadioBtn2, 16)
             self.answerRadioBtn3 = QRadioButton()
             self.answerRadioBtn3.setStyleSheet("background-color: white")
-            MyFunctions.setFontForUI(self.answerRadioBtn3, 25)
+            MyFunctions.setFontForUI(self.answerRadioBtn3, 16)
             self.answerRadioBtn4 = QRadioButton()
             self.answerRadioBtn4.setStyleSheet("background-color: white")
-            MyFunctions.setFontForUI(self.answerRadioBtn4, 25)
+            MyFunctions.setFontForUI(self.answerRadioBtn4, 16)
             answerLayout.addWidget(self.answerRadioBtn1)
             answerLayout.addWidget(self.answerRadioBtn2)
             answerLayout.addWidget(self.answerRadioBtn3)
@@ -313,17 +331,17 @@ class SelfTestScene(QWidget):
             self.interfaceQuesItems.add(self.answerRadioBtn4)
             
             self.nextExplainPBtn = QPushButton('Explain')
-            MyFunctions.setFontForUI(self.nextExplainPBtn, 25)
+            MyFunctions.setFontForUI(self.nextExplainPBtn, 16)  # Reduced from 25
             self.createUIInScene(self.nextExplainPBtn)
             self.nextExplainPBtn.setStyleSheet("background-color: #328930")
 
             self.nextSkipPBtn = QPushButton('Check')
-            MyFunctions.setFontForUI(self.nextSkipPBtn, 25)
+            MyFunctions.setFontForUI(self.nextSkipPBtn, 16)
             self.createUIInScene(self.nextSkipPBtn)
             
-            self.correctnessTextItem = self.createGraphicsTextItem(self.scene,'', 25)
+            self.correctnessTextItem = self.createGraphicsTextItem(self.scene,'', 16)  # Reduced from 25
                 
-            self.footnoteTextItem = self.createGraphicsTextItem(self.scene,self.FOOTNOTE[self.PROCESS_QUES], 25)
+            self.footnoteTextItem = self.createGraphicsTextItem(self.scene,self.FOOTNOTE[self.PROCESS_QUES], 14)  # Reduced from 25
             self.footnoteTextWidth = self.footnoteTextItem.boundingRect().width()
 
             self.answerRadioBtn1.clicked.connect(self.rBtn1Clicked)

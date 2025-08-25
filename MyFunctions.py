@@ -1,3 +1,5 @@
+# COMPLETE MyFunctions.py file with font fixes:
+
 '''
 Created on Apr 20, 2015
 
@@ -7,6 +9,7 @@ Updated for PyQt6 compatibility
 import re, errno, math, os, grp
 from PyQt6.QtCore import QPointF, Qt
 from PyQt6.QtGui import QPen, QBrush, QColor, QFont
+
 '''Colors'''
 EMERALD = QColor(80, 200,120)
 
@@ -178,12 +181,43 @@ def checkDirectoryExistence(direc):
     return hasDir
 
 def setFontForUI(widget, size=20):
-        import platform
-        operSys = platform.system()
-        if operSys == 'Linux':
-            font = widget.font()
-            font.setPointSize(size)
-            widget.setFont(font)
-        elif operSys == 'Darwin':
-            font = QFont('Courier', size)
-            widget.setFont(font)
+    import platform
+    
+    # Ensure size is integer (PyQt6 requirement)
+    size = int(size)
+    
+    operSys = platform.system()
+    if operSys == 'Linux':
+        font = widget.font()
+        font.setPointSize(size)
+        widget.setFont(font)
+    elif operSys == 'Darwin':
+        # MINIMAL FIX: Just replace the missing 'Courier' with 'Monaco' 
+        # Keep everything else the same as original
+        font = QFont('Monaco', size)
+        widget.setFont(font)
+
+# Also fix any direct QFont('Courier', size) calls
+# Replace lines like: font = QFont('Courier', size)
+# With this cross-platform function:
+
+def getSystemFont(size=12):
+    import platform
+    
+    # Ensure size is integer
+    size = int(size)
+    
+    operSys = platform.system()
+    
+    if operSys == 'Darwin':  # macOS
+        # Use Monaco for monospace (replaces Courier)
+        return QFont('Monaco', size)
+    elif operSys == 'Linux':
+        # Use Liberation Mono for monospace
+        return QFont('Liberation Mono', size)
+    elif operSys == 'Windows':
+        # Use Consolas for monospace
+        return QFont('Consolas', size)
+    else:
+        # Generic monospace fallback
+        return QFont('monospace', size)
