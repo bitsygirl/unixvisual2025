@@ -1,0 +1,9 @@
+UNIX
+root: ~/Documents/testroot
+user: sue, bob, jake    	#user set
+group: staff 		sue, jake		#one group, multiple users
+group: coder		bob
+object: drwxr-xr-x	sue:staff 	/usr
+object: rwx---r-x	sue:staff 	/usr/afile
+object: d--xr-xr--	sue:staff	/usr/bin
+object: rw-r-xr-x	sue:staff	/usr/bin/bfile

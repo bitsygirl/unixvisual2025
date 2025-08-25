@@ -1,0 +1,10 @@
+ACL
+root: ~/Documents
+user: tony, mike, lucy, john, ben	#user set
+group: tester mike, john
+group: developer tony, lucy, john
+group: manager john
+object: rwx		tony, lucy:developer, manager		/code/program1
+object: dr-- 	lucy:developer, manager			-r 	/document
+object: drwx 	mike:tester						-r 	/document
+object: drwx 	mike:tester						-r 	/test

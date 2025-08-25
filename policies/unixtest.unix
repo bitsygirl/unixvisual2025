@@ -1,0 +1,10 @@
+UNIX
+root: ~/
+user: tony, mike, lucy, mary
+user: jim
+group: tester 		mike, mary	
+group: developer	tony, lucy	
+object: drwsrwxr-x	tony:developer		/code	
+object: rwsrw-r--	tony:developer		/code/program1
+object: drwxrw-r--	mike:tester		 	/document
+object: drwxrw----	mike:tester		 	/test

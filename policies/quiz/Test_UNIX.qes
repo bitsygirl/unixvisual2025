@@ -1,0 +1,111 @@
+#Set the quiz mode at the begining:
+#0. Traditional mode: students' answers will be sent at the end of the quiz throughout which no correct answers will be exposed to the students
+#1. Multiple trial mode: students are allowed to try multiple times until they get the correct answer to the current question. The times of trial for each question will be recorded.
+#2. Self test mode: correct answers will be shown to the students after a choice has been confirmed for a question. The students's answers will be recorded.
+#Question types:
+#1. No visualization will be provided but the specification of the specified file will be available. -- Text choices
+#2. Show User View with Directory Tree-- Text choices
+#3. Show Group View with Directory Tree-- Text choices
+#4. Show no view -- Text choices
+#5. Show no view -- Image choices
+#Questions are divided by dashed lines and the following information should be filled out
+#Question type: The number for each type listed above
+#Question text
+#Whether the choices contain images: Yes or No 
+#Choice 1 text or image directory
+#Choice 2 text or image directory
+#Choice 3 text or image directory
+#Choice 4 text or image directory
+#If the question needs to load in a .unix file, specify the directory of the file. If it is the same with the previous question, put 'Same'. If no file needs to be loaded, put 'None' here.
+----------------------------------------------------
+0
+----------------------------------------------------
+4
+Which of the following permission bit should be set to allow changing a file's content?
+Read
+Write
+Execute
+None
+None
+----------------------------------------------------
+4
+Which of the following permission bit should be set to allow listing a directory's content?
+Read
+Write
+Execute
+None
+None
+----------------------------------------------------
+4
+Which of the following permission bit should be set to allow passing through a directory?
+Read
+Write
+Execute
+None
+None
+----------------------------------------------------
+1
+When ~/projects/program1 is executed by Jim, which group will it ran as
+#Mary can not read file ~/projects/program1.c.
+manager
+developer
+tester
+None
+./policies/quiz/simple.unix
+----------------------------------------------------
+1
+Mary can read file ~/document/log.
+True
+False
+None
+None
+Same
+----------------------------------------------------
+2
+Lucy can read file ~/document/log.
+True
+False
+None
+None
+Same
+----------------------------------------------------
+2
+Jim can read file ~/test/test1.c.
+True
+False
+None
+None
+Same
+----------------------------------------------------
+1
+Which of the operations can Nick apply to directory ~/Sales/Home?
+List files and directories in it
+Add/Remove a file within this directory
+Traverse the directory
+None
+./policies/quiz/company.unix
+----------------------------------------------------
+2
+Evan can create a file under directory ~/Technique/projectA.
+True
+False
+None
+None
+Same
+----------------------------------------------------
+2
+Tom can list the content of directory ~/Technique/projectA/doc/people.
+True
+False
+None
+None
+Same
+----------------------------------------------------
+2
+Tom can remove files under directory ~/Technique/projectA.
+True
+False
+None
+None
+Same
+----------------------------------------------------

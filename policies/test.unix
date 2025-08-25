@@ -1,0 +1,19 @@
+UNIX
+root: ./pseudoroot
+user: tony, mike, lucy, mary
+user: jim
+group: tester 		mike, lucy
+group: developer	tony, lucy
+group: manager		mary, jim
+object: drwsrwxr--	tony:developer	-r	/code	
+object: rwxrwSr--	tony:developer		/code/program1
+object: drwxrw-r--	mary:manager	-r 	/document
+object: drwxrw-r--	mary:manager	-r 	/document/projectA
+object: drwxrw-r--	mary:manager	-r 	/document/projectA/develoeprs
+object: drwxrw-r--	mary:manager	-r 	/document/projectA/testers
+object: drwxrw-r--	jim:manager	    -r 	/document/projectB
+object: drwxrw-r--	jim:manager		-r 	/document/projectA/develoeprs
+object: drwxrw-r--	jim:manager		-r 	/document/projectA/testers
+object: drwxrwx--x	mike:tester		-r 	/test
+object: drwxrwxr-x	mike:tester		-r 	/test/projectA
+object: rwxrw-r--	mary:tester		-r 	/test/projectA/program1

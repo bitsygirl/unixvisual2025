@@ -1,0 +1,41 @@
+UNIX
+root: ./pseudoroot
+user: tony, mike, lucy, mary, jim, tom, linda, evan, hannah, nick, lindsay, david
+group: manager		mary, mike, tom
+group: projectA		tony, lucy
+group: projectB		linda, jim
+group: sales		hannah, evan
+group: accountant	nick, lindsay, david
+
+object: drwxr-x---	lindsay:accountant	/Accounting
+object: drwxr-x---	nick:accountant		/Accounting/Payable
+object: drwxr-x---	david:accountant	/Accounting/Receivable
+
+object: drwxr-x--x	hannah:sales		/Sales
+object: drwxrwx-w-	hannah:sales		/Sales/Home
+object: drwxrwx---	evan:sales			/Sales/Abroad
+
+object: drwxrwx--x	mary:manager		/Technique
+object: drwxrwxr-x	mike:manager		/Technique/projectA
+object: drwxrwx---	tony:projectA		/Technique/projectA/code
+object: drwxrwx---	tony:projectA		/Technique/projectA/code/program
+object: rwxrwxr--	tony:projectA		/Technique/projectA/code/program/main
+object: rw-rw-r--	tony:projectA		/Technique/projectA/code/program/main.c
+object: drwxrwxr--	lucy:projectA		/Technique/projectA/code/test
+object: rwxrwxr--	lucy:projectA		/Technique/projectA/code/test/securityCheck
+object: rwxrwx---	lucy:projectA		/Technique/projectA/code/test/securityCheck.c
+object: drwxrwxr--	lucy:projectA		/Technique/projectA/doc
+object: drwxrwxr--	lucy:projectA		/Technique/projectA/doc/people
+object: rw-r-----	tony:projectA		/Technique/projectA/doc/plan.doc
+	
+object: drwxrwxr-x	tom:manager			/Technique/projectB
+object: drwxrwx---	linda:projectB		/Technique/projectB/code
+object: drwxrwxr--	linda:projectB		/Technique/projectB/code/program
+object: rwxrwxr--	linda:projectB		/Technique/projectB/code/program/main
+object: rwxrwxr--	linda:projectB		/Technique/projectB/code/program/main.c
+object: drwxrwxr--	jim:projectB		/Technique/projectB/code/test
+object: rwxrwxr--	jim:projectB		/Technique/projectB/code/test/securityCheck
+object: rwxrwxr--	jim:projectB		/Technique/projectB/code/test/securityCheck.c
+object: drwxrw-r--	linda:projectB		/Technique/projectB/doc
+object: drwxrwxr--	jim:projectB		/Technique/projectB/doc/people
+object: rw-r-----	linda:projectB		/Technique/projectB/doc/plan.doc
