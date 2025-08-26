@@ -121,7 +121,7 @@ class ProcessNode(QGraphicsRectItem):
         draw outline and the inside block
         '''
         pen = QPen(Qt.GlobalColor.black)
-        pen.setWidth(3.0)
+        pen.setWidth(3)
         self.setPen(pen)
         self.setBrush(QBrush(QColor(self.color)))
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
@@ -130,7 +130,7 @@ class ProcessNode(QGraphicsRectItem):
         display system call name
         '''
         pen.setColor(Qt.GlobalColor.black)
-        pen.setWidth(1.0)
+        pen.setWidth(1)
         painter.setPen(pen)
         painter.setFont(self.font)
         painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, self.process.name)

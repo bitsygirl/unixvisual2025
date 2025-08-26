@@ -65,7 +65,7 @@ class FileNode(QGraphicsPixmapItem):
         
     def paint(self, painter, option, widget=None):
         pen = QPen(QColor(0, 0, 0))
-        pen.setWidth(1.0)
+        pen.setWidth(1)
         painter.setPen(pen)
         rect = painter.fontMetrics().boundingRect(self.name)
         rect = QRect(rect.x(), rect.y(), rect.width(), rect.height()*1.2)

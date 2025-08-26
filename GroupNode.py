@@ -22,7 +22,7 @@ class GroupFrameNode(QGraphicsRectItem):
     def paint(self, painter, option, widget=None):
         painter.setFont(self.main.sysFont)
         pen = QPen(Qt.GlobalColor.lightGray)
-        pen.setWidth(1.0)
+        pen.setWidth(1)
         self.setPen(pen)
         super().paint(painter, option, widget)
         rect = QRectF(self.rect().x(), self.rect().y()-0.5*self.rect().height()-10, self.rect().width(), self.rect().height())
@@ -72,7 +72,7 @@ class GroupNode(QGraphicsRectItem):
     def paint(self, painter, option, widget=None):
         painter.setFont(self.main.sysFont)
         pen = QPen(QColor(0, 0, 0))
-        pen.setWidth(1.0)
+        pen.setWidth(1)
         self.setPen(pen)
         super().paint(painter, option, widget)
         rect = QRectF(self.rect().x()-2*self.rect().width(), self.rect().y(), 5*self.rect().width(), self.rect().height())
