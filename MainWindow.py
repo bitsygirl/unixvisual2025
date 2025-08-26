@@ -581,7 +581,7 @@ class MainWindow(QMainWindow):
         self.syscallViewScene.setSceneRect(0, 0, self.view.geometry().width(), 5000)
         self.filebrowser.setGeometry(int(0.46*self.view.geometry().width()), 0, int(0.54*self.view.geometry().width()), int(self.view.geometry().height()))
         self.updateAllItemPos()
-        
+
     def explainTexteditHighlightLastLines(self):
         self.prevText = self.explainTextEdit.toPlainText()
         self.prevCursor = self.prevText.count('\n')
@@ -593,16 +593,22 @@ class MainWindow(QMainWindow):
         blockFormat = QTextBlockFormat(cursor.blockFormat())
         blockFormat.setBackground(QColor(187,255,255, 10))
         blockFormat.setNonBreakableLines(True)
-        blockFormat.setPageBreakPolicy(QTextFormat.PageBreakPolicy.PageBreak_AlwaysBefore)
+        blockFormat.setPageBreakPolicy(QTextFormat.PageBreakFlag.PageBreak_AlwaysBefore)
         cursor.setBlockFormat(blockFormat)
-        it = cursor.block().begin()
-        while not it.atEnd():
-            charFormat = QTextCharFormat(it.fragment().charFormat())
-            tempCursor = QTextCursor(cursor)
-            tempCursor.setPosition(it.fragment().position())
-            tempCursor.setPosition(it.fragment().position() + it.fragment().length(), QTextCursor.MoveMode.KeepAnchor)
-            tempCursor.setCharFormat(charFormat)
-            it += 1
+        
+        # PyQt6 compatible text fragment iteration
+        block = cursor.block()
+        if block.isValid():
+            it = block.begin()
+            while not it.atEnd():
+                fragment = it.fragment()
+                if fragment.isValid():
+                    charFormat = QTextCharFormat(fragment.charFormat())
+                    tempCursor = QTextCursor(self.explainTextEdit.document())
+                    tempCursor.setPosition(fragment.position())
+                    tempCursor.setPosition(fragment.position() + fragment.length(), QTextCursor.MoveMode.KeepAnchor)
+                    tempCursor.setCharFormat(charFormat)
+                it += 1
             
     def resetOutputText(self):
         self.explainTextEdit.clear()
@@ -610,17 +616,31 @@ class MainWindow(QMainWindow):
         blockFormat = QTextBlockFormat(cursor.blockFormat())
         blockFormat.setBackground(QColor("white"))
         blockFormat.setNonBreakableLines(True)
-        blockFormat.setPageBreakPolicy(QTextFormat.PageBreakPolicy.PageBreak_AlwaysBefore)
+        blockFormat.setPageBreakPolicy(QTextFormat.PageBreakFlag.PageBreak_AlwaysBefore)
         cursor.setBlockFormat(blockFormat)
-        it = cursor.block().begin()
-        while it < self.prevCursor+1:
-            charFormat = QTextCharFormat(it.fragment().charFormat())
-            tempCursor = QTextCursor(cursor)
-            tempCursor.setPosition(it.fragment().position())
-            tempCursor.setPosition(it.fragment().position() + it.fragment().length(), QTextCursor.MoveMode.KeepAnchor)
-            tempCursor.setCharFormat(charFormat)
-            it += 1
+        
+        # Restore the previous text first
         self.explainTextEdit.appendPlainText(self.prevText)
+        
+        # Now apply formatting to the restored text using document blocks
+        document = self.explainTextEdit.document()
+        block = document.firstBlock()
+        block_count = 0
+        
+        while block.isValid() and block_count <= self.prevCursor:
+            it = block.begin()
+            while not it.atEnd():
+                fragment = it.fragment()
+                if fragment.isValid():
+                    charFormat = QTextCharFormat(fragment.charFormat())
+                    tempCursor = QTextCursor(document)
+                    tempCursor.setPosition(fragment.position())
+                    tempCursor.setPosition(fragment.position() + fragment.length(), QTextCursor.MoveMode.KeepAnchor)
+                    tempCursor.setCharFormat(charFormat)
+                it += 1
+            block = block.next()
+            block_count += 1
+        
         self.cursor = cursor
         
     def updateAllItemPos(self):

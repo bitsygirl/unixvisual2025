@@ -67,8 +67,8 @@ def getPermissionbitForFile(filepath, fnode, scene):
         try:
             st = os.stat(filepath)
         except Exception as e:
-            return "%05o" % int(oct(0), 8)
-        return "%05o" % int(oct(st.st_mode&0o7777), 8)
+            return "%05o" % int(0o0)
+        return "%05o" % (st.st_mode & 0o7777)
     else:
         filename = ''
         if filepath[-1] == '/' and filepath != '/':
@@ -98,9 +98,9 @@ def getPermissionbitForFile(filepath, fnode, scene):
                 permnum+=1024
             if ('t' in v.otherperm) or ('T' in v.otherperm):
                 permnum+=512
-            return "%05o" % int(oct(permnum), 8)
+            return "%05o" % permnum
         else:
-            return "%05o" % int(oct(0), 8)
+            return "%05o" % int(0o0)
 
 def convertRWXToOct(permset):
     permnum = 0
@@ -114,11 +114,11 @@ def convertRWXToOct(permset):
 
 def convertOctToRWX(perm, bits, setid = False, stkbit = False):
     permList = []
-    if bool(perm&0o100):
+    if bool(perm&0o4):
         permList.append('r')
-    if bool(perm&0o010):
+    if bool(perm&0o2):
         permList.append('w')
-    if bool(perm&0o001):
+    if bool(perm&0o1):
         if setid:
             permList.append('s')
         elif bits=='other' and stkbit:
@@ -134,15 +134,15 @@ def convertOctToRWX(perm, bits, setid = False, stkbit = False):
 
 def convertOctToRWXString(perm, setid = False, otherbit = False, stkbit = False):
     perms = ''
-    if bool(perm&0o100):
+    if bool(perm&0o4):
         perms+='r'
     else:
         perms+='-'
-    if bool(perm&0o010):
+    if bool(perm&0o2):
         perms+='w'
     else:
         perms+='-'
-    if bool(perm&0o001):
+    if bool(perm&0o1):
         if setid:
             perms+='s'
         else:
@@ -160,14 +160,31 @@ def convertOctToRWXString(perm, setid = False, otherbit = False, stkbit = False)
     return perms
 
 def convertNineBitsOctToRWX(perm):
+    """
+    FIXED FUNCTION: Convert octal permission string to rwx string
+    Input: '00640' (5-digit octal string)
+    Output: 'rw-r-----' (9-character rwx string)
+    """
     perms = ''
-    start = 4
-    otherp = int(perm[start], 8)
-    groupp = int(perm[start-1], 8)
-    userp = int(perm[start-2], 8)
-    perms+=convertOctToRWXString(userp, int(perm, 8) & S_ISUID)
-    perms+=convertOctToRWXString(groupp, int(perm, 8) & S_ISGID)
-    perms+=convertOctToRWXString(otherp, False, True, int(perm, 8) & S_ISVTX)
+    
+    # Handle the case where perm might be shorter than 5 digits
+    if len(perm) < 5:
+        perm = perm.zfill(5)  # Pad with leading zeros
+    
+    # Extract the permission digits (last 3 digits)
+    start = len(perm) - 3  # Start from the last 3 digits
+    userp = int(perm[start], 8)     # User permissions (6 in 0640)
+    groupp = int(perm[start+1], 8)  # Group permissions (4 in 0640)  
+    otherp = int(perm[start+2], 8)  # Other permissions (0 in 0640)
+    
+    # Convert the full permission integer for special bit checking
+    full_perm = int(perm, 8)
+    
+    # Convert each octal digit to rwx string
+    perms += convertOctToRWXString(userp, full_perm & S_ISUID)
+    perms += convertOctToRWXString(groupp, full_perm & S_ISGID)
+    perms += convertOctToRWXString(otherp, False, True, full_perm & S_ISVTX)
+    
     return perms
 
 def checkParentDirectoriesForUserNode(filepath, fnode, unode, scene):
